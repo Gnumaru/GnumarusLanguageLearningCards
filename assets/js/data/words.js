@@ -37,14 +37,17 @@ var LANGUAGES = {
      scrollable row per group, so it stays readable instead of becoming a
      single very long ribbon of chips. */
   var GROUPS = [
-    { id: 'food', key: 'group.food' },
-    { id: 'people', key: 'group.people' },
-    { id: 'wear', key: 'group.wear' },
-    { id: 'home', key: 'group.home' },
-    { id: 'world', key: 'group.world' },
-    { id: 'work', key: 'group.work' },
-    { id: 'play', key: 'group.play' },
-    { id: 'words', key: 'group.words' }
+    /* Group captions live once, in `groupNames` below, and are read through
+       `data.groupName(id, lang)`. They used to be duplicated into all three
+       i18n tables as well, where nothing ever read them. */
+    { id: 'food' },
+    { id: 'people' },
+    { id: 'wear' },
+    { id: 'home' },
+    { id: 'world' },
+    { id: 'work' },
+    { id: 'play' },
+    { id: 'words' }
   ];
 
   var CATEGORIES = [

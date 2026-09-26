@@ -35,14 +35,14 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 500 words, a hundred at a time. Search across every language,
+**Deck** — all 984 words, a hundred at a time. Search across every language,
 filter by category or by one of nine parts of speech, hide what you have already
 mastered. Tap a card to flip it and read the word in every selected language,
 with a speaker button on each row that uses the voices already installed on your
 device.
 
 The deck is **paginated, 100 cards per page**, and that is the difference between
-a grid that stays quick and one that does not. Rendering 500 cards up front means
+a grid that stays quick and one that does not. Rendering 984 cards up front means
 ~35,000 DOM nodes, ~7 MB of heap and a full grid re-render on every keystroke;
 one page of 100 is ~7,000 nodes, 2 MB, and 30 ms. The page size is a single
 constant, `DECK_PAGE_SIZE` in `app.js`.
@@ -94,16 +94,16 @@ you can move your progress between browsers or machines.
 languages appear on the cards, pronunciation, animations, and where your data
 lives.
 
-### What is in the 500 words
+### What is in the 984 words
 
 Nouns, adjectives and verbs were only the starting point. A language learner also
 needs function words, so the deck covers nine parts of speech:
 
 | Part of speech | Words | Examples |
 | --- | --- | --- |
-| Noun | 286 | *vaca*, *pontapé*, *violino* |
-| Adjective | 59 | *veloz*, *coredondo*, *silencioso* |
-| Verb | 55 | *correr*, *lavar*, *esquecer* |
+| Noun | 761 | *vaca*, *pontapé*, *violino* |
+| Adjective | 66 | *veloz*, *coredondo*, *silencioso* |
+| Verb | 57 | *correr*, *lavar*, *esquecer* |
 | Adverb | 26 | *aqui*, *nunca*, *de repente* |
 | Pronoun | 26 | *eu*, *aquilo*, *deles* |
 | Preposition | 16 | *sob*, *entre*, *através de* |
@@ -111,8 +111,22 @@ needs function words, so the deck covers nine parts of speech:
 | Interjection | 11 | *olá*, *ai*, *parabéns* |
 | Numeral | 10 | *um* … *dez* |
 
-The 500 words sit in 23 categories, from the everyday (*animals*, *food*, *body*,
-*clothes*) to the situational (*places*, *transport*, *time*, *technology*).
+The 984 words sit in 53 categories, gathered into eight captioned groups so the
+filter bar stays readable:
+
+| Group | Categories | Words |
+| --- | --- | --- |
+| Food | food, drinks, kitchen | 150 |
+| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 425 |
+| Clothing | clothes, accessories | 17 |
+| Home | objects, house, furniture, garden | 40 |
+| World | nature, places, transport, time, weather, city, travel, money | 71 |
+| Work and study | technology, tools, office, school, communication, media | 11 |
+| Fun | colors, sports, music, shapes, sizes, textures, holidays, games | 42 |
+| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers, position, quantity | 228 |
+
+The Food and People groups were added in themed batches after the original
+hand-drawn 500; everything else is still the core deck.
 
 Concrete things are drawn as concrete things. Abstract words are drawn as **scenes
 and gestures**, because a picture of *entre* has to be an idea: a hand pointing at a
@@ -163,14 +177,16 @@ assets/js/
   i18n.js                      interface strings for every locale + t()
   storage.js                   localStorage with an in-memory fallback
   data/words.js                languages, groups, categories, the core 500 words
-  data/themes-food.js          themed sets; each pushes into LLC.data.add()
+  data/themes-food.js          themed set: drinks + kitchen
+  data/themes-people.js        themed set: animals … jobs (12 categories)
   art.js                       the shape vocabulary, the shared families, the
                                hand-drawn core catalogue
   art-nouns.js                 hand-drawn illustrations for the core nouns
   art-things.js                ...for jobs, objects, sports, music, places
   art-grammar.js               ...for verbs, adjectives and the grammar
-  art-kinds.js                 the picture engine: 50+ parameterised kinds
+  art-kinds.js                 the picture engine: 70 parameterised kinds
   art-specs-food.js            recipes, one line per themed word
+  art-specs-people.js          recipes for the people group
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -185,12 +201,22 @@ Artwork is inline SVG built from a tiny shape vocabulary (`c`, `e`, `rc`, `p`,
 `ps`, `pl`, `ln`, `txt`), so the whole deck is a few hundred KB of text, sharp at
 any size, printable, and impossible to break with a missing file.
 
-Three things keep 500 drawings consistent rather than merely present:
+Three things keep 984 drawings consistent rather than merely present:
 
 * **Shared families.** Drink containers, garments, buildings, vehicles, balls,
   instruments, screens and weather are drawn once and parameterised by colour and
   proportion, so seventeen garments and twenty-eight kitchen objects look like one
-  set rather than forty-five inventions.
+  set rather than forty-five inventions. The themed batches work the same way: one
+  quadruped with a coat, an ear and a tail covers a horse, a fox and a goat; one
+  bird with a beak covers thirty-one species; one body with a mark in a different
+  place covers twenty symptoms; one figure with a different hat and tool covers
+  fifty-six jobs.
+* **Silhouette before colour.** A recolour does not make a card distinguishable —
+  six white cups with steam are six of the same card. Fish are told apart by
+  build (a sardine is a sliver, a tilapia is a disc) and tail, a white bird gets an
+  outline so it is not a blob on a pale card, a man is broader than a woman, and a
+  boy is shorter. Every distinct drawing in the deck is asserted to be unique, so
+  this cannot quietly regress.
 * **A draw-time safety net.** `LLC.art.get()` catches anything a drawing throws
   and falls back to deterministic generated geometry, so one bad card can never
   break a page — but it also records the failure in `LLC.art.failures()`, and the
@@ -203,7 +229,7 @@ Three things keep 500 drawings consistent rather than merely present:
 The four art files each end with `LLC.art.register(map)`, so artwork can be split
 and added to without touching the engine.
 
-### Drawing fifteen hundred words
+### Drawing a thousand words
 
 Hand-drawing every word is not viable at this size, and it is not even the best
 answer: a learner recognises a whole family from one shape. So the themed
@@ -221,18 +247,28 @@ isotonic:   d({ k: 'bottle', liquid: '#38bdf8', cap: '#0284c7', tall: 1.1 }),
 kind('bottle', function (o) { /* draws with o.liquid, o.cap, o.label, o.tall */ });
 ```
 
-Forty-nine drinks come out of a dozen kinds, and they look like one set. A recipe
-naming a kind that does not exist falls back to generated geometry **and** is
-recorded in `LLC.art.specFailures()`, which the test suite asserts is empty — a
-typo in one line of a thousand is caught rather than shipping a card that
-quietly looks like nothing.
+Forty-nine drinks come out of a dozen kinds, four hundred and twenty-five words
+about people come out of seven, and they look like one set. A recipe naming a kind
+that does not exist falls back to generated geometry **and** is recorded in
+`LLC.art.specFailures()`, which the test suite asserts is empty — a typo in one line
+of a thousand is caught rather than shipping a card that quietly looks like nothing.
 
-The two mistakes the positional vocabulary invites are also linted
-(`artlint.py` in the test harness): a width passed where an attribute string
-belongs, and a second `stroke-width` handed to a helper that already emits one.
+The vocabulary is positional, and positional arguments are easy to get wrong in ways
+that render as nothing at all rather than as an error. Four lints in the test harness
+cover the mistakes that actually happened while building this:
 
-Related words share a kind on purpose, so the deck reads as a set rather than as
-fifteen hundred unrelated pictures.
+| Lint | Catches |
+| --- | --- |
+| `artlint.py` | a width passed where an attribute string belongs; a second `stroke-width` handed to a helper that already emits one |
+| `arity.py` | too many arguments for a helper; a bare number or an unbalanced quote in the attribute slot |
+| `pathcmd.py` | a computed path that never got its `M`, so the browser silently drops the shape |
+| `dupes.py` | a themed word that repeats an existing entry in all three languages |
+
+`pathcmd.py` exists because the most expensive bug in the whole build was invisible:
+twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and
+every renderer discards such a path without a word. Forty-eight cards were quietly
+missing a limb. `fixpath.py` repaired them, and the validator now re-checks the
+generated markup so it cannot come back.
 
 ### The scheduling
 
@@ -280,7 +316,10 @@ whisk:  k({ k: 'utensil', shape: 'whisk', grip: '#334155' }),
 
 `LLC.data.add()` keeps the first definition of an id, so a themed file can
 overlap the core deck without clobbering it — and a word with no recipe still
-renders through the fallback.
+renders through the fallback. That rule cuts both ways, so always check what
+actually landed: `add()` **silently skips** an id that already exists, and four
+words in the first themed batch were dropped for exactly this reason without any
+error. `dupes.py` and the row-count check in `i18ncheck.js` are the safety net.
 
 **Add a picture kind** — one `kind('name', function (o) { … })` in
 `art-kinds.js`, then use it from any recipe. A kind draws into a 120×120 viewBox

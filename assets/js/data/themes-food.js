@@ -118,11 +118,8 @@
     ['sponge',        'kitchen', 'noun', 'esponja',          'sponge',        'esponja'],
     ['bin',           'kitchen', 'noun', 'lixeira',          'bin',           'basura'],
     ['stove2',        'kitchen', 'noun', 'fogareiro',        'camping stove', 'hornillo'],
-    ['thermos2',      'kitchen', 'noun', 'termômetro',       'thermometer',   'termómetro'],
+    ['thermometer',   'kitchen', 'noun', 'termômetro',       'thermometer',   'termómetro'],
     ['timer',         'kitchen', 'noun', 'cronômetro',       'timer',         'cronómetro'],
-    ['saucepão',     'kitchen', 'noun', 'panela de molho',   'saucepan',      'cazuela'],
-    ['caçarola',     'kitchen', 'noun', 'frigideira funda',  'frying pan',    'sartén hondo'],
-    ['travessa',     'kitchen', 'noun', 'assadeira',         'baking sheet',  'bandeja de horno'],
     ['rodo',         'kitchen', 'noun', 'rodo',              'mop',           'fregona'],
     ['timer2',        'kitchen', 'noun', 'temporizador',     'kitchen timer', 'temporizador de cocina']
   ];

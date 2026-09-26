@@ -345,6 +345,10 @@
    * Always the first and last page plus a window around the current one, so a
    * deck that grows to fifty pages does not produce fifty buttons.
    */
+  /* The page numbers to offer: always the first and the last, a window around
+     the current one, and an ellipsis wherever something was skipped. The
+     window is two pages each side, which is what makes a ten-page deck
+     navigable without stepping through it one card page at a time. */
   function pageSequence(page, pages) {
     var out = [];
     var i;
@@ -353,8 +357,8 @@
       return out;
     }
     out.push(1);
-    var from = Math.max(2, page - 1);
-    var to = Math.min(pages - 1, page + 1);
+    var from = Math.max(2, page - 2);
+    var to = Math.min(pages - 1, page + 2);
     if (from > 2) out.push(0);
     for (i = from; i <= to; i++) out.push(i);
     if (to < pages - 1) out.push(0);

@@ -83,7 +83,6 @@
     toaster:      k({ k: 'appliance', kind: 'toaster', toast: '#d9a05b' }),
     mixer:        k({ k: 'appliance', kind: 'mixer', cream: '#fdf6e8' }),
     grill:        k({ k: 'appliance', kind: 'grill', steam: 1 }),
-    lid2:         k({ k: 'lid', color: '#475569' }),
     fork:         k({ k: 'utensil', shape: 'fork' }),
     knife:        k({ k: 'utensil', shape: 'knife', grip: '#4a3a2a' }),
     spoon:        k({ k: 'utensil', shape: 'spoon' }),
@@ -115,9 +114,6 @@
     recipe:       k({ k: 'recipe' }),
     ingredient:   k({ k: 'ingredient' }),
     ovenproof:    k({ k: 'tray', color: '#475569' }),
-    travessa:     k({ k: 'tray', color: '#64748b' }),
-    caçarola:     k({ k: 'cookware', body: '#0f172a', inner: '#1e293b', handle: 'long' }),
-    saucepão:     k({ k: 'pot', body: '#475569', grip: '#334155', lid: '#334155' }),
     rack:         k({ k: 'rack' }),
     burner:       k({ k: 'burner' }),
     sink:         k({ k: 'sink' }),
@@ -131,7 +127,6 @@
     rodo:         k({ k: 'mop' }),
     stove2:       k({ k: 'campingstove' }),
     thermometer:  k({ k: 'thermometer' }),
-    thermos2:     k({ k: 'thermometer' }),
     timer:        k({ k: 'kitchentimer' }),
     timer2:       k({ k: 'kitchentimer', shape: 'stack' })
   };
