@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gnumarus · Language Flashcards</title>
+<meta name="description" content="Learn Portuguese, English and Spanish with picture flashcards and spaced repetition. Works offline, straight from your file system.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#4f46e5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234f46e5'/%3E%3Cg fill='%23fff'%3E%3Crect x='12' y='18' width='40' height='28' rx='6'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='7' fill='%23fbbf24'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script>
+  /* Applied before the first paint so the theme never flashes. */
+  (function () {
+    try {
+      var saved = localStorage.getItem('gnumarus.ui');
+      var theme = saved ? JSON.parse(saved).theme : null;
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (err) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main" data-i18n="app.skip">Skip to content</a>
+
+<header class="appbar">
+  <div class="appbar__inner">
+    <a class="brand" href="#/deck">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" focusable="false"><rect width="64" height="64" rx="18" fill="currentColor"/><rect x="13" y="17" width="38" height="26" rx="6" fill="#fff" opacity=".92"/><circle cx="32" cy="30" r="7" fill="#fbbf24"/><path d="M20 48h24" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/></svg>
+      </span>
+      <span class="brand__text">
+        <strong class="brand__name" data-i18n="app.title">Gnumarus</strong>
+        <span class="brand__tagline" data-i18n="app.tagline">Learn languages with pictures</span>
+      </span>
+    </a>
+
+    <nav class="tabs" id="tabs" aria-label="Main"></nav>
+
+    <div class="appbar__actions">
+      <label class="langpick">
+        <span class="langpick__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>
+        </span>
+        <span class="visually-hidden" data-i18n="nav.language">Interface language</span>
+        <select id="uiLang" class="langpick__select"></select>
+      </label>
+      <button type="button" class="iconbtn" id="themeBtn" data-i18n-title="settings.theme" title="Theme"></button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="main" tabindex="-1"></main>
+
+<noscript>
+  <div class="noscript">
+    <h1>Gnumarus</h1>
+    <p>This flashcard app needs JavaScript. Please enable it and reload the page.</p>
+    <p>Este aplicativo precisa de JavaScript. Ative-o e recarregue a página.</p>
+    <p>Esta aplicación necesita JavaScript. Actívalo y recarga la página.</p>
+  </div>
+</noscript>
+
+<footer class="appfoot">
+  <p data-i18n="settings.aboutBody">A picture dictionary that turns into a spaced-repetition deck.</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/data/words.js"></script>
+<script src="assets/js/art.js"></script>
+<script src="assets/js/srs.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
