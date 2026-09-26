@@ -1342,10 +1342,266 @@
   };
 
   /* ------------------------------------------------------------------ *
+   * Parametric families
+   *
+   * High-cardinality sets (drink containers, garments, buildings, vehicles,
+   * balls, instruments, screens, weather) share one well-tested drawing and
+   * vary by colour, proportion and a few props. That keeps 500 cards readable
+   * and consistent instead of 500 slightly different silhouettes.
+   * ------------------------------------------------------------------ */
+
+  var F = {};
+
+  /* --- round fruit: apple, orange, peach, plum, tomato, olive -------- */
+  F.roundFruit = function (x, y, r, body, leaf) {
+    return p('M' + x + ',' + (y - r * 0.95) +
+      ' C' + (x - r * 1.5) + ',' + (y - r * 0.7) + ' ' + (x - r * 1.4) + ',' + (y + r * 1.3) + ' ' + x + ',' + (y + r * 1.15) +
+      ' C' + (x + r * 1.4) + ',' + (y + r * 1.3) + ' ' + (x + r * 1.5) + ',' + (y - r * 0.7) + ' ' + x + ',' + (y - r * 0.95) + ' Z', body) +
+      ps('M' + x + ',' + (y - r * 0.95) + ' C' + x + ',' + (y - r * 1.5) + ' ' + (x + r * 0.15) + ',' + (y - r * 1.7) + ' ' + (x + r * 0.4) + ',' + (y - r * 1.85), '#7a5230', 2.4) +
+      p('M' + (x + r * 0.35) + ',' + (y - r * 1.5) + ' C' + (x + r * 1.3) + ',' + (y - r * 2.1) + ' ' + (x + r * 1.7) + ',' + (y - r * 0.9) + ' ' + (x + r * 1.2) + ',' + (y - r * 0.75) +
+        ' C' + (x + r * 0.9) + ',' + (y - r * 1.2) + ' ' + (x + r * 0.6) + ',' + (y - r * 1.3) + ' ' + (x + r * 0.35) + ',' + (y - r * 1.5) + ' Z', leaf) +
+      e(x - r * 0.55, y - r * 0.2, r * 0.28, r * 0.18, '#ffffff', 'opacity=".4" transform="rotate(-28 ' + (x - r * 0.55) + ' ' + (y - r * 0.2) + ')"');
+  };
+
+  /* --- citrus slice --------------------------------------------------- */
+  F.citrusSlice = function (x, y, r, rind, flesh) {
+    var s = c(x, y, r, rind);
+    s += c(x, y, r * 0.86, flesh);
+    for (var i = 0; i < 8; i++) {
+      var a = (i * Math.PI) / 4;
+      s += p('M' + x + ',' + y + ' L' + (x + Math.cos(a) * r * 0.82).toFixed(1) + ',' + (y + Math.sin(a) * r * 0.82).toFixed(1) +
+        ' A' + (r * 0.82) + ',' + (r * 0.82) + ' 0 0 1 ' + (x + Math.cos(a + 0.7) * r * 0.82).toFixed(1) + ',' + (y + Math.sin(a + 0.7) * r * 0.82).toFixed(1) + ' Z',
+        'rgba(255,255,255,.45)');
+    }
+    return s;
+  };
+
+  /* --- bottle / jar / can --------------------------------------------- */
+  F.bottle = function (x, base, o) {
+    o = o || {};
+    var w = o.w || 26, h = o.h || 52, neck = o.neck || 12;
+    var top = base - h;
+    return rc(x - neck / 2, top, neck, 12, o.glass || '#e8f0f8', 2) +
+      rc(x - w / 2, top + 8, w, h - 8, o.liquid || '#8ec6fb', 5) +
+      rc(x - w / 2, top + 8, w * 0.3, h - 8, '#ffffff', 5, 'opacity=".28"') +
+      rc(x - neck / 2 - 2, top - 5, neck + 4, 8, o.cap || '#2f6fa8', 2) +
+      rc(x - w / 2 + 2, base - h * 0.52, w - 4, 14, o.label || '#fdfdff', 2);
+  };
+
+  F.glassOf = function (x, base, liquid, o) {
+    o = o || {};
+    var w = o.w || 30, h = o.h || 46;
+    var level = base - h * (o.fill || 0.66);
+    return p('M' + (x - w / 2) + ',' + (base - h) + ' L' + (x + w / 2) + ',' + (base - h) + ' L' + (x + w / 2 - 4) + ',' + base + ' L' + (x - w / 2 + 4) + ',' + base + ' Z',
+      o.glass || '#dbeafe', 'opacity=".55"') +
+      p('M' + (x - w / 2 + 1.5) + ',' + level + ' L' + (x + w / 2 - 1.5) + ',' + level + ' L' + (x + w / 2 - 4) + ',' + base + ' L' + (x - w / 2 + 4) + ',' + base + ' Z', liquid) +
+      e(x, level, w / 2 - 2, 3.5, liquid) +
+      e(x, base - h, w / 2, 3, o.glass || '#dbeafe', 'opacity=".8"');
+  };
+
+  F.mugOf = function (x, base, liquid) {
+    return ps('M' + (x + 13) + ',' + (base - 24) + ' C' + (x + 28) + ',' + (base - 24) + ' ' + (x + 28) + ',' + (base - 4) + ' ' + (x + 13) + ',' + (base - 4), '#e8eef6', 5) +
+      p('M' + (x - 15) + ',' + (base - 28) + ' L' + (x + 15) + ',' + (base - 28) + ' L' + (x + 11) + ',' + base + ' L' + (x - 11) + ',' + base + ' Z', '#fdfdff') +
+      e(x, base - 28, 15, 4, liquid) +
+      e(x - 2, base - 28, 13, 3, '#fdfdff', 'opacity=".5"');
+  };
+
+  F.plateOf = function (x, y, food) {
+    return e(x, y + 6, 30, 8, '#f1f5f9') + e(x, y, 28, 8, '#fdfdff') + (food || '');
+  };
+
+  F.bowlOf = function (x, base, o) {
+    o = o || {};
+    return p('M' + (x - 26) + ',' + (base - 22) + ' Q' + x + ',' + (base + 14) + ' ' + (x + 26) + ',' + (base - 22) + ' Z', o.bowl || '#fdfdff') +
+      e(x, base - 22, 26, 6, o.rim || '#dbeafe') +
+      (o.food || '');
+  };
+
+  /* --- garments -------------------------------------------------------- */
+  F.shirt = function (x, y, color) {
+    return p('M' + (x - 30) + ',' + (y - 12) + ' L' + (x - 12) + ',' + (y - 20) + ' Q' + x + ',' + (y - 14) + ' ' + (x + 12) + ',' + (y - 20) +
+      ' L' + (x + 30) + ',' + (y - 12) + ' L' + (x + 24) + ',' + (y + 2) + ' L' + (x + 18) + ',' + (y - 1) + ' L' + (x + 18) + ',' + (y + 28) +
+      ' L' + (x - 18) + ',' + (y + 28) + ' L' + (x - 18) + ',' + (y - 1) + ' L' + (x - 24) + ',' + (y + 2) + ' Z', color) +
+      p('M' + (x - 12) + ',' + (y - 20) + ' Q' + x + ',' + (y - 10) + ' ' + (x + 12) + ',' + (y - 20) + ' L' + (x + 7) + ',' + (y - 24) +
+        ' Q' + x + ',' + (y - 19) + ' ' + (x - 7) + ',' + (y - 24) + ' Z', '#ffffff', 'opacity=".35"');
+  };
+
+  F.pants = function (x, y, color) {
+    return p('M' + (x - 20) + ',' + y + ' L' + (x + 20) + ',' + y + ' L' + (x + 18) + ',' + (y + 44) + ' L' + (x + 3) + ',' + (y + 44) +
+      ' L' + x + ',' + (y + 18) + ' L' + (x - 3) + ',' + (y + 44) + ' L' + (x - 18) + ',' + (y + 44) + ' Z', color) +
+      rc(x - 20, y - 4, 40, 7, '#000000', 2, 'opacity=".12"');
+  };
+
+  F.dress = function (x, y, color) {
+    return p('M' + (x - 11) + ',' + y + ' L' + (x + 11) + ',' + y + ' L' + (x + 30) + ',' + (y + 46) + ' L' + (x - 30) + ',' + (y + 46) + ' Z', color) +
+      p('M' + (x - 11) + ',' + (y + 10) + ' L' + (x + 11) + ',' + (y + 10) + ' L' + (x + 14) + ',' + (y + 18) + ' L' + (x - 14) + ',' + (y + 18) + ' Z', '#ffffff', 'opacity=".3"');
+  };
+
+  F.skirt = function (x, y, color) {
+    return p('M' + (x - 14) + ',' + y + ' L' + (x + 14) + ',' + y + ' L' + (x + 26) + ',' + (y + 32) + ' L' + (x - 26) + ',' + (y + 32) + ' Z', color) +
+      rc(x - 15, y - 4, 30, 6, '#000000', 2, 'opacity=".12"');
+  };
+
+  F.sock = function (x, y, color) {
+    return p('M' + (x - 12) + ',' + y + ' L' + (x + 10) + ',' + y + ' L' + (x + 10) + ',' + (y + 24) + ' Q' + (x + 24) + ',' + (y + 26) +
+      ' ' + (x + 24) + ',' + (y + 34) + ' Q' + (x + 24) + ',' + (y + 40) + ' ' + (x + 12) + ',' + (y + 40) + ' L' + (x - 12) + ',' + (y + 40) + ' Z', color) +
+      rc(x - 12, y, 22, 7, '#ffffff', 0, 'opacity=".5"');
+  };
+
+  F.shoe = function (x, base, color, tall) {
+    var top = base - (tall ? 34 : 20);
+    return p('M' + (x - 16) + ',' + top + ' L' + (x + 2) + ',' + top + ' L' + (x + 6) + ',' + (base - 10) + ' L' + (x + 26) + ',' + (base - 6) +
+      ' Q' + (x + 30) + ',' + base + ' ' + (x + 24) + ',' + base + ' L' + (x - 16) + ',' + base + ' Z', color) +
+      rc(x - 16, base - 6, 42, 6, '#3f3a4d', 2) +
+      ln(x - 4, top + 6, x + 2, top + 6, '#ffffff', 2);
+  };
+
+  F.headgear = function (x, y, kind, color) {
+    if (kind === 'cap') {
+      return p('M' + (x - 18) + ',' + y + ' A18,16 0 0 1 ' + (x + 18) + ',' + y + ' Z', color) +
+        p('M' + (x - 20) + ',' + y + ' Q' + (x - 6) + ',' + (y + 10) + ' ' + (x + 20) + ',' + (y + 8) + ' L' + (x + 20) + ',' + y + ' Z', color) +
+        c(x, y - 2, 2.4, '#ffffff', 'opacity=".7"');
+    }
+    return p('M' + (x - 14) + ',' + (y - 2) + ' L' + (x - 8) + ',' + (y - 26) + ' Q' + x + ',' + (y - 34) + ' ' + (x + 8) + ',' + (y - 26) +
+      ' L' + (x + 14) + ',' + (y - 2) + ' Z', color) +
+      e(x, y, 30, 6, color);
+  };
+
+  F.scarf = function (x, y, color) {
+    return rc(x - 24, y - 8, 48, 14, color, 6) +
+      p('M' + (x + 8) + ',' + (y + 4) + ' L' + (x + 24) + ',' + (y + 4) + ' L' + (x + 20) + ',' + (y + 30) + ' L' + (x + 6) + ',' + (y + 28) + ' Z', color) +
+      rc(x - 24, y - 8, 48, 5, '#ffffff', 2, 'opacity=".28"');
+  };
+
+  F.glove = function (x, y, color) {
+    return p('M' + (x - 14) + ',' + (y + 6) + ' L' + (x + 14) + ',' + (y + 6) + ' L' + (x + 12) + ',' + (y + 34) + ' L' + (x - 12) + ',' + (y + 34) + ' Z', color) +
+      rc(x - 16, y - 18, 32, 26, color, 8) +
+      rc(x - 13, y - 26, 7, 12, color, 3.5) + rc(x - 4, y - 30, 7, 16, color, 3.5) +
+      rc(x + 5, y - 28, 7, 14, color, 3.5) + rc(x + 13, y - 20, 6, 8, color, 3) +
+      rc(x - 16, y + 30, 28, 8, '#ffffff', 3, 'opacity=".35"');
+  };
+
+  F.coatArt = function (x, y, color) {
+    return p('M' + (x - 22) + ',' + y + ' L' + (x - 10) + ',' + (y - 6) + ' L' + (x + 10) + ',' + (y - 6) + ' L' + (x + 22) + ',' + y +
+      ' L' + (x + 24) + ',' + (y + 40) + ' L' + (x - 24) + ',' + (y + 40) + ' Z', color) +
+      ln(x, y - 4, x, y + 40, '#000000', 2, 'opacity=".18"') +
+      c(x - 5, y + 12, 2.2, '#fdfdff') + c(x - 5, y + 24, 2.2, '#fdfdff') +
+      rc(x - 26, y + 6, 8, 26, color, 3) + rc(x + 18, y + 6, 8, 26, color, 3);
+  };
+
+  F.glasses = function (x, y) {
+    return c(x - 14, y, 12, '#dbeafe', 'opacity=".8"') + c(x + 14, y, 12, '#dbeafe', 'opacity=".8"') +
+      c(x - 14, y, 12, 'none', 'stroke="#334155" stroke-width="3"') +
+      c(x + 14, y, 12, 'none', 'stroke="#334155" stroke-width="3"') +
+      ln(x - 2, y, x + 2, y, '#334155', 3) + ln(x - 26, y - 3, x - 38, y - 7, '#334155', 3) +
+      ln(x + 26, y - 3, x + 38, y - 7, '#334155', 3) +
+      ln(x - 19, y - 6, x - 9, y - 6, '#ffffff', 2.4) + ln(x + 9, y - 6, x + 19, y - 6, '#ffffff', 2.4);
+  };
+
+  /* --- buildings -------------------------------------------------------- */
+  F.building = function (x, y, o) {
+    o = o || {};
+    var w = o.w || 56, h = o.h || 46;
+    var s = rc(x - w / 2, y, w, h, o.wall || '#e6dcc8', 2);
+    if (o.roof !== false) {
+      s += p('M' + (x - w / 2 - 7) + ',' + y + ' L' + x + ',' + (y - 30) + ' L' + (x + w / 2 + 7) + ',' + y + ' Z', o.roofColor || '#e0453f');
+      s += rc(x - w / 2 - 7, y - 3, w + 14, 6, o.roofColor || '#e0453f', 2);
+    }
+    s += rc(x - 8, y + h - 24, 16, 24, o.door || '#8a5a33', 2) + c(x + 4, y + h - 11, 1.8, '#fcd34d');
+    s += rc(x - w / 2 + 7, y + 10, 13, 13, o.window || '#8ec6fb', 2) +
+         rc(x + w / 2 - 20, y + 10, 13, 13, o.window || '#8ec6fb', 2);
+    return s + (o.extra || '');
+  };
+
+  /* --- vehicles --------------------------------------------------------- */
+  F.wheels = function (pts, color) {
+    return pts.map(function (pt) {
+      return c(pt[0], pt[1], 8, '#3f3a4d') + c(pt[0], pt[1], 3.4, color || '#cbd5e1');
+    }).join('');
+  };
+
+  F.carBody = function (x, base, color, o) {
+    o = o || {};
+    var w = o.w || 58, h = o.h || 20;
+    return p('M' + (x - w / 2) + ',' + base + ' L' + (x - w / 2) + ',' + (base - h) + ' L' + (x - w / 2 + 8) + ',' + (base - h) +
+      ' L' + (x - w / 2 + 18) + ',' + (base - h - 18) + ' L' + (x + w / 2 - 20) + ',' + (base - h - 18) + ' L' + (x + w / 2 - 8) + ',' + (base - h) +
+      ' L' + (x + w / 2) + ',' + (base - h) + ' L' + (x + w / 2) + ',' + base + ' Z', color) +
+      p('M' + (x - w / 2 + 20) + ',' + (base - h - 16) + ' L' + (x - w / 2 + 22) + ',' + (base - h - 3) + ' L' + (x - 4) + ',' + (base - h - 3) +
+        ' L' + (x - 4) + ',' + (base - h - 16) + ' Z', '#cfe4f5') +
+      p('M' + (x + 1) + ',' + (base - h - 16) + ' L' + (x + 1) + ',' + (base - h - 3) + ' L' + (x + w / 2 - 10) + ',' + (base - h - 3) +
+        ' L' + (x + w / 2 - 18) + ',' + (base - h - 16) + ' Z', '#cfe4f5') +
+      c(x + w / 2 - 3, base - h + 6, 3.4, '#fde68a') +
+      F.wheels([[x - w / 2 + 12, base], [x + w / 2 - 12, base]], o.wheel);
+  };
+
+  /* --- balls ------------------------------------------------------------ */
+  F.ball = function (x, y, r, base, pattern) {
+    var s = c(x, y, r, base) + c(x - r * 0.35, y - r * 0.35, r * 0.22, '#ffffff', 'opacity=".45"');
+    if (pattern === 'pentagon') {
+      s += pl([x, y - r * 0.5, x + r * 0.48, y - r * 0.15, x + r * 0.3, y + r * 0.4, x - r * 0.3, y + r * 0.4, x - r * 0.48, y - r * 0.15], '#2f3b4d');
+    } else if (pattern === 'seam') {
+      s += ps('M' + (x - r) + ',' + y + ' Q' + x + ',' + (y - r * 0.5) + ' ' + (x + r) + ',' + y, '#c2410c', 2.2);
+      s += ps('M' + (x - r) + ',' + y + ' Q' + x + ',' + (y + r * 0.5) + ' ' + (x + r) + ',' + y, '#c2410c', 2.2);
+    } else if (pattern === 'stripes') {
+      s += rc(x - r * 0.16, y - r, r * 0.32, r * 2, '#c2410c', 0);
+    } else if (pattern === 'lines') {
+      for (var i = 1; i <= 2; i++) s += rc(x - r * 0.9, y - r + i * r * 0.55, r * 1.8, 2.6, '#c2410c', 1);
+    }
+    return s;
+  };
+
+  /* --- plants ------------------------------------------------------------ */
+  F.bush = function (x, y, r, color) {
+    return c(x, y, r, color) + c(x - r * 0.8, y + r * 0.35, r * 0.62, color) + c(x + r * 0.8, y + r * 0.35, r * 0.62, color) +
+      c(x - r * 0.2, y - r * 0.5, r * 0.5, '#ffffff', 'opacity=".16"');
+  };
+
+  F.daisy = function (x, y, r, color) {
+    var s = '', i;
+    for (i = 0; i < 6; i++) {
+      var a = (i * Math.PI) / 3;
+      s += e(x + Math.cos(a) * r, y + Math.sin(a) * r, r * 0.62, r * 0.62, color,
+        'transform="rotate(' + (i * 60) + ' ' + (x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1) + ')"');
+    }
+    return s + c(x, y, r * 0.5, '#fbbf24') + c(x, y, r * 0.26, '#f59e0b');
+  };
+
+  /* --- a four-point sparkle -------------------------------------------- */
+  F.spark = function (x, y, r, color) {
+    return pl([x, y - r, x + r * 0.28, y - r * 0.28, x + r, y, x + r * 0.28, y + r * 0.28,
+               x, y + r, x - r * 0.28, y + r * 0.28, x - r, y, x - r * 0.28, y - r * 0.28],
+      color || '#fcd34d');
+  };
+
+  /* --- a pointing hand (prepositions, "this/that") ------------------------ */
+  F.pointHand = function (x, y, dir, skin) {
+    skin = skin || SKIN;
+    var d = { left: 'rotate(180 ', right: 'rotate(0 ', up: 'rotate(-90 ', down: 'rotate(90 ' }[dir || 'right'];
+    return '<g transform="' + d + x + ' ' + y + ')">' +
+      p('M' + (x - 12) + ',' + (y - 4) + ' L' + (x + 30) + ',' + (y - 4) + ' L' + (x + 30) + ',' + (y + 4) + ' L' + (x - 4) + ',' + (y + 4) + ' Z', skin) +
+      rc(x - 16, y - 10, 14, 20, skin, 6) +
+      rc(x - 2, y + 2, 6, 8, skin, 3) +
+      '</g>';
+  };
+
+  /* --- speech bubble (interjections) ------------------------------------- */
+  F.bubble = function (x, y, w, h, fill) {
+    return p('M' + (x - w / 2) + ',' + (y - h / 2) + ' h' + w + ' a8,8 0 0 1 8,8 v' + (h - 16) + ' a8,8 0 0 1 -8,8 h' + (-w - 18) +
+      ' l-14,14 v-14 h' + (w - 10) + ' a8,8 0 0 1 -8,-8 v' + (-(h - 16)) + ' a8,8 0 0 1 8,-8 z', fill || '#fdfdff');
+  };
+
+  /* --- a person doing one clear thing ------------------------------------ */
+  F.actor = function (x, y, o) {
+    o = o || {};
+    return person(x, y, o) + (o.prop || '');
+  };
+
+  /* ------------------------------------------------------------------ *
    * Public API
    * ------------------------------------------------------------------ */
 
   var cache = Object.create(null);
+  var failures = [];
 
   LLC.art = {
     /** SVG markup for a word id; falls back to generated geometry. */
@@ -1355,12 +1611,28 @@
       try {
         markup = ART[id] ? ART[id]() : fallback(id);
       } catch (err) {
+        /* A broken drawing must never break the deck, but the failure is
+           recorded so the test-suite can assert the catalogue is sound. */
+        failures.push({ id: id, error: err && err.message ? err.message : String(err) });
         markup = fallback(id);
       }
       cache[id] = markup;
       return markup;
     },
+    /** Add artwork from another file. */
+    register: function (map) {
+      for (var id in map) {
+        if (Object.prototype.hasOwnProperty.call(map, id)) ART[id] = map[id];
+      }
+    },
     has: function (id) { return !!ART[id]; },
+    /** Ids whose drawing threw; expected to stay empty. */
+    failures: function () { return failures.slice(); },
+    /** The shape vocabulary, for the companion art files. */
+    d: { c: c, e: e, rc: rc, p: p, ps: ps, pl: pl, ln: ln, txt: txt, scene: scene },
+    /** Shared parametric families. */
+    f: F,
+    colors: { SKIN: SKIN, SKIN_D: SKIN_D, NIGHT: NIGHT, WHITE: WHITE },
     scene: scene,
     fallback: fallback,
     person: person

@@ -313,6 +313,26 @@ a { color: inherit; }
 .btn[disabled]:active { transform: none; }
 
 .chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* The deck has 23 categories and 9 parts of speech: keep each group on a single
+   scrollable line instead of a wall of stacked chips. The two `local` gradients
+   scroll with the content while the two `scroll` shadows stay pinned, so a
+   shadow only shows on the side that still has chips off-screen. */
+.chiprow--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  max-width: 100%;
+  background:
+    linear-gradient(to right, var(--surface) 40%, transparent) 0 0 / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 40%, transparent) 100% 0 / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, var(--line-strong), transparent) 0 0 / 13px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--line-strong), transparent) 100% 0 / 13px 100% no-repeat scroll;
+}
+.chiprow--scroll::-webkit-scrollbar { height: 5px; }
+.chiprow--scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 9px; }
+.chiprow--scroll .chip { flex: 0 0 auto; }
 .chip {
   display: inline-flex;
   align-items: center;
@@ -454,6 +474,10 @@ a { color: inherit; }
   text-align: left;
   perspective: 1400px;
   border-radius: var(--radius-lg);
+  /* The deck holds 500 cards; letting the browser skip layout and paint for
+     the ones far outside the viewport keeps scrolling smooth. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 214px auto 252px;
 }
 .card__inner {
   position: relative;
@@ -468,6 +492,8 @@ a { color: inherit; }
 .card.is-flipped .card__inner { transform: rotateY(180deg); }
 .card:hover .card__inner { box-shadow: var(--shadow); }
 .card:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+
+.card[hidden] { display: none; }
 
 .card__face {
   position: absolute;

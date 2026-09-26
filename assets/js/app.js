@@ -264,7 +264,8 @@
     var rows = langs.map(function (id) {
       /* Short code, not the full language name: the row is only a few words
          wide and long labels collide with the translation. */
-      return '<span class="tr"><span class="tr__lang">' + esc(id.toUpperCase()) + '</span>' +
+      return '<span class="tr" data-lang="' + esc(id) + '">' +
+        '<span class="tr__lang">' + esc(id.toUpperCase()) + '</span>' +
         '<span class="tr__word">' + highlight(data.translate(word, id), state.q) + '</span>' +
         speakButton(data.translate(word, id), id) + '</span>';
     }).join('');
@@ -299,9 +300,47 @@
   function deckResultsMarkup() {
     var words = filteredWords();
     if (!words.length) {
-      return '<div class="empty"><strong>' + esc(t('deck.empty')) + '</strong><p>' + esc(t('deck.emptyHint')) + '</p></div>';
+      return '<div class="empty" id="deckEmpty"><strong>' + esc(t('deck.empty')) + '</strong>' +
+        '<p>' + esc(t('deck.emptyHint')) + '</p></div>';
     }
     return '<div class="deckgrid">' + words.map(deckCardMarkup).join('') + '</div>';
+  }
+
+  /**
+   * Re-apply the filters to the grid that is already on screen.
+   *
+   * With 500 cards, replacing innerHTML on every keystroke costs ~100ms and
+   * makes typing feel sticky. Toggling `hidden` and refreshing only the
+   * highlighted word keeps a keystroke in the low single-digit milliseconds,
+   * and it leaves the flip state and focus alone.
+   */
+  function refreshDeck() {
+    var results = $('#deckResults');
+    if (!results) return;
+    var grid = results.querySelector('.deckgrid');
+    if (!grid) { render(); return; }   /* empty state: rebuild from scratch */
+
+    var keep = Object.create(null);
+    filteredWords().forEach(function (word) { keep[word.id] = true; });
+
+    var shown = 0;
+    $$('.card', grid).forEach(function (card) {
+      var id = card.getAttribute('data-card');
+      var show = !!keep[id];
+      card.hidden = !show;
+      if (!show) return;
+      shown++;
+      var word = data.byId(id);
+      $$('.tr', card).forEach(function (row) {
+        var lang = row.getAttribute('data-lang');
+        var cell = row.querySelector('.tr__word');
+        if (cell) cell.innerHTML = highlight(data.translate(word, lang), state.q);
+      });
+    });
+    if (!shown) {
+      if (!$('#deckEmpty')) results.innerHTML = '<div class="empty" id="deckEmpty"><strong>' +
+        esc(t('deck.empty')) + '</strong><p>' + esc(t('deck.emptyHint')) + '</p></div>';
+    }
   }
 
   function deckView() {
@@ -335,9 +374,9 @@
             'value="' + esc(state.q) + '">' +
         '</div>' +
         '<div class="filters__sep"></div>' +
-        '<div class="chiprow">' + catChips + '</div>' +
+        '<div class="chiprow chiprow--scroll">' + catChips + '</div>' +
         '<div class="filters__sep"></div>' +
-        '<div class="chiprow">' + typeChips + '</div>' +
+        '<div class="chiprow chiprow--scroll">' + typeChips + '</div>' +
         '<div class="filters__sep"></div>' +
         '<label class="switch"><input type="checkbox" id="hideMastered"' + (state.hideMastered ? ' checked' : '') + '>' +
           '<span class="switch__track"></span><span data-i18n="deck.showLearned">Show learned cards</span></label>' +
@@ -793,7 +832,34 @@
     if (state.view === 'deck') {
       var search = $('#deckSearch');
       if (search) search.setAttribute('aria-label', t('common.search'));
+      revealActiveChips(main);
     }
+  }
+
+  /**
+   * Nudge the horizontally scrolling filter rows so the chips that are
+   * actually switched on are visible. With 23 categories the "Adverbs" chip
+   * sits well off-screen, and an active filter you cannot see reads as no
+   * filter at all.
+   *
+   * The offset is computed by hand in the next frame: `scrollIntoView` called
+   * straight after assigning innerHTML measures a row that has not been laid
+   * out yet, so it silently does nothing.
+   */
+  function revealActiveChips(scope) {
+    var rows = $$('.chiprow--scroll', scope);
+    if (!rows.length) return;
+    var raf = global.requestAnimationFrame || function (fn) { global.setTimeout(fn, 0); };
+    raf(function () {
+      rows.forEach(function (row) {
+        var on = row.querySelector('.chip.is-on');
+        if (!on) return;
+        var rowBox = row.getBoundingClientRect();
+        var chipBox = on.getBoundingClientRect();
+        if (chipBox.left >= rowBox.left && chipBox.right <= rowBox.right) return;
+        row.scrollLeft += chipBox.left - rowBox.left - 8;
+      });
+    });
   }
 
   /* ================================================================== *
@@ -1059,13 +1125,7 @@
     var el = event.target;
     if (!el || el.id !== 'deckSearch') return;
     state.q = el.value;
-    /* Only the grid is replaced: rebuilding the whole view would steal focus
-       from the search field on every keystroke. */
-    var results = $('#deckResults');
-    if (results) {
-      results.innerHTML = deckResultsMarkup();
-      i18n.apply(results);
-    }
+    refreshDeck();
   }
 
   function onChange(event) {

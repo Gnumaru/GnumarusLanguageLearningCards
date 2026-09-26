@@ -1,10 +1,10 @@
 # Gnumarus · Language Flashcards
 
 A picture-based vocabulary trainer. You see a drawing of a thing — *vaca*, *veloz*,
-*comer* — and, by tapping the card, you see what it is called in Portuguese,
-English and Spanish. The same deck doubles as a spaced-repetition study app, so
-words you already know stop coming back and words you keep forgetting come back
-sooner.
+*comer*, *entre* — and, by tapping the card, you see what it is called in
+Portuguese, English and Spanish. The same deck doubles as a spaced-repetition
+study app, so words you already know stop coming back and words you keep
+forgetting come back sooner.
 
 Built with plain HTML, CSS and JavaScript. No build step, no dependencies, no
 network calls, no accounts. It works from a web server **and** by double-clicking
@@ -35,10 +35,18 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 100 words in a filterable grid. Search across every language, filter
-by category or part of speech, hide what you have already mastered. Tap a card to
-flip it and read the word in every selected language, with a speaker button on
-each row that uses the voices already installed on your device.
+**Deck** — all 500 words in a filterable grid. Search across every language, filter
+by category or by one of nine parts of speech, hide what you have already
+mastered. Tap a card to flip it and read the word in every selected language, with
+a speaker button on each row that uses the voices already installed on your
+device.
+
+Filtering never rebuilds the grid: the 500 cards are built once and the ones that
+fall out of the current search are hidden, which keeps a keystroke in the low
+single-digit milliseconds and leaves the flip state and the focus alone. The
+category and part-of-speech rows scroll horizontally, and whichever chip is
+switched on is scrolled back into view — an active filter you cannot see reads
+as no filter at all.
 
 **Study** — three modes:
 
@@ -59,6 +67,37 @@ you can move your progress between browsers or machines.
 **Settings** — interface language, theme (light / dark / follow the system), which
 languages appear on the cards, pronunciation, animations, and where your data
 lives.
+
+### What is in the 500 words
+
+Nouns, adjectives and verbs were only the starting point. A language learner also
+needs function words, so the deck covers nine parts of speech:
+
+| Part of speech | Words | Examples |
+| --- | --- | --- |
+| Noun | 286 | *vaca*, *pontapé*, *violino* |
+| Adjective | 59 | *veloz*, *coredondo*, *silencioso* |
+| Verb | 55 | *correr*, *lavar*, *esquecer* |
+| Adverb | 26 | *aqui*, *nunca*, *de repente* |
+| Pronoun | 26 | *eu*, *aquilo*, *deles* |
+| Preposition | 16 | *sob*, *entre*, *através de* |
+| Conjunction | 11 | *mas*, *porque*, *embora* |
+| Interjection | 11 | *olá*, *ai*, *parabéns* |
+| Numeral | 10 | *um* … *dez* |
+
+The 500 words sit in 23 categories, from the everyday (*animals*, *food*, *body*,
+*clothes*) to the situational (*places*, *transport*, *time*, *technology*).
+
+Concrete things are drawn as concrete things. Abstract words are drawn as **scenes
+and gestures**, because a picture of *entre* has to be an idea: a hand pointing at a
+spot on the ground for *aqui*, a figure pointing at its own chest for *eu*, a ball
+sitting inside a box for *em*, a figure with a suitcase under a plane for *viajar*,
+a looping arrow with a tick for *sempre* and the same arrow struck through for
+*nunca*. The numerals are the dots you would count on a die.
+
+Some words are homographs in one language and distinct in another, and both cards
+are kept on purpose — *he* and *him* are both *ele*, *morning* and *tomorrow* are
+both *mañana*. The drawing is what tells them apart.
 
 ### Keyboard
 
@@ -97,8 +136,13 @@ assets/css/styles.css          theming via custom properties, light + dark
 assets/js/
   i18n.js                      interface strings for every locale + t()
   storage.js                   localStorage with an in-memory fallback
-  data/words.js                the deck: languages, categories, 100 words
-  art.js                       100 hand-built SVG illustrations
+  data/words.js                the deck: languages, categories, 500 words
+  art.js                       the shape vocabulary, the shared families, the
+                               first 100 illustrations
+  art-nouns.js                 illustrations for the concrete nouns
+  art-things.js                jobs, objects, sports, music, places, transport,
+                               technology, time
+  art-grammar.js               verbs, adjectives and the whole grammar
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -110,9 +154,26 @@ same reason — `fetch()` of a local file is blocked on `file://`, and the whole
 has to be there before the first paint.
 
 Artwork is inline SVG built from a tiny shape vocabulary (`c`, `e`, `rc`, `p`,
-`ps`, `pl`, `ln`), so the entire deck is about 110 KB of text, sharp at any size,
-printable, and impossible to break with a missing file. A word without bespoke art
-falls back to deterministic generated geometry rather than a broken image.
+`ps`, `pl`, `ln`, `txt`), so the whole deck is a few hundred KB of text, sharp at
+any size, printable, and impossible to break with a missing file.
+
+Three things keep 500 drawings consistent rather than merely present:
+
+* **Shared families.** Drink containers, garments, buildings, vehicles, balls,
+  instruments, screens and weather are drawn once and parameterised by colour and
+  proportion, so seventeen garments and twenty-eight kitchen objects look like one
+  set rather than forty-five inventions.
+* **A draw-time safety net.** `LLC.art.get()` catches anything a drawing throws
+  and falls back to deterministic generated geometry, so one bad card can never
+  break a page — but it also records the failure in `LLC.art.failures()`, and the
+  test suite asserts that list is empty. A silent fallback is exactly the kind of
+  thing that hides a real bug; it caught one during this build.
+* **A build-time check.** Every card is re-parsed as XML and compared against the
+  others for duplicates, so a typo in a path data string, or two words quietly
+  sharing a drawing, is caught before anyone opens the app.
+
+The four art files each end with `LLC.art.register(map)`, so artwork can be split
+and added to without touching the engine.
 
 ### The scheduling
 
@@ -133,7 +194,11 @@ dead-ends just because nothing happens to be due.
 ```
 
 `id | category | part of speech | pt | en | es`. The `id` is what progress is
-tracked against, so changing an existing one resets that word's history.
+tracked against, so changing an existing one resets that word's history, and it
+has to be unique. Where one English word covers two ideas, disambiguate the id and
+leave the visible translation alone: the deck carries `orange` (the colour) beside
+`orangefruit` (the fruit), and `clean` (the adjective) beside `cleanverb` (the
+verb). Nothing the reader ever sees shows the difference.
 
 **Add a language** — add the code to each word's `w` object, add an entry to
 `LANGUAGES` and to `languageIds`, and add `lang.<code>` to every locale in
@@ -143,9 +208,11 @@ all read from `data.languageIds`.
 **Add an interface language** — copy a block in `LOCALES` in `i18n.js` and set
 `_dir` to `'ltr'` or `'rtl'`. The header picker builds itself from that object.
 
-**Draw something** — add a function to `ART` in `art.js` returning a `scene(...)`
-built from the shape helpers. A forgotten word still renders (via the fallback), so
-artwork can be added at whatever pace you like.
+**Draw a word** — add `map.otter = function () { return scene(…); }` to the
+`map` in whichever of the four art files fits the category. The helpers
+(`LLC.art.d` for shapes, `LLC.art.f` for the families, `LLC.art.person` for a
+figure) are shared, and a word with no drawing still renders through the
+fallback, so artwork can be added at whatever pace suits you.
 
 ---
 
