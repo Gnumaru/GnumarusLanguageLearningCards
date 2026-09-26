@@ -545,12 +545,25 @@
   function deckView() {
     var summary = srs.summary();
 
-    var catChips = data.categories.map(function (cat) {
+    var catChip = function (cat) {
       var on = state.cats.indexOf(cat.id) !== -1;
       return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-cat="' + esc(cat.id) + '" ' +
         'aria-pressed="' + on + '">' +
         '<span class="chip__dot" style="background:' + esc(cat.accent) + '"></span>' +
         esc(data.categoryName(cat.id, i18n.current)) + '</button>';
+    };
+
+    /* With fifty-odd categories a single ribbon of chips is unreadable, so the
+       categories are laid out one scrollable row per themed group, each under a
+       caption. The rows keep the group order of `data.groups`. */
+    var catChips = data.groups.map(function (group) {
+      var cats = data.categories.filter(function (cat) { return cat.group === group.id; });
+      if (!cats.length) return '';
+      return '<div class="chipgroup">' +
+        '<span class="chipgroup__label">' + esc(data.groupName(group.id, i18n.current)) + '</span>' +
+        '<div class="chiprow chiprow--scroll">' +
+          cats.map(catChip).join('') +
+        '</div></div>';
     }).join('');
 
     var typeChips = data.types.map(function (type) {
@@ -571,7 +584,7 @@
             'value="' + esc(state.q) + '">' +
         '</div>' +
         '<div class="filters__sep"></div>' +
-        '<div class="chiprow chiprow--scroll">' + catChips + '</div>' +
+        '<div class="chipgroups">' + catChips + '</div>' +
         '<div class="filters__sep"></div>' +
         '<div class="chiprow chiprow--scroll">' + typeChips + '</div>' +
         '<div class="filters__sep"></div>' +

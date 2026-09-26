@@ -162,13 +162,15 @@ assets/css/styles.css          theming via custom properties, light + dark
 assets/js/
   i18n.js                      interface strings for every locale + t()
   storage.js                   localStorage with an in-memory fallback
-  data/words.js                the deck: languages, categories, 500 words
+  data/words.js                languages, groups, categories, the core 500 words
+  data/themes-food.js          themed sets; each pushes into LLC.data.add()
   art.js                       the shape vocabulary, the shared families, the
-                               first 100 illustrations
-  art-nouns.js                 illustrations for the concrete nouns
-  art-things.js                jobs, objects, sports, music, places, transport,
-                               technology, time
-  art-grammar.js               verbs, adjectives and the whole grammar
+                               hand-drawn core catalogue
+  art-nouns.js                 hand-drawn illustrations for the core nouns
+  art-things.js                ...for jobs, objects, sports, music, places
+  art-grammar.js               ...for verbs, adjectives and the grammar
+  art-kinds.js                 the picture engine: 50+ parameterised kinds
+  art-specs-food.js            recipes, one line per themed word
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -200,6 +202,37 @@ Three things keep 500 drawings consistent rather than merely present:
 
 The four art files each end with `LLC.art.register(map)`, so artwork can be split
 and added to without touching the engine.
+
+### Drawing fifteen hundred words
+
+Hand-drawing every word is not viable at this size, and it is not even the best
+answer: a learner recognises a whole family from one shape. So the themed
+vocabulary is described by **recipes**, and a recipe is a short record naming a
+`kind` plus the parameters it draws with.
+
+```js
+// art-specs-food.js
+latte:      d({ k: 'coffeecup', style: 'latte' }),
+isotonic:   d({ k: 'bottle', liquid: '#38bdf8', cap: '#0284c7', tall: 1.1 }),
+```
+
+```js
+// art-kinds.js — one renderer, many words
+kind('bottle', function (o) { /* draws with o.liquid, o.cap, o.label, o.tall */ });
+```
+
+Forty-nine drinks come out of a dozen kinds, and they look like one set. A recipe
+naming a kind that does not exist falls back to generated geometry **and** is
+recorded in `LLC.art.specFailures()`, which the test suite asserts is empty — a
+typo in one line of a thousand is caught rather than shipping a card that
+quietly looks like nothing.
+
+The two mistakes the positional vocabulary invites are also linted
+(`artlint.py` in the test harness): a width passed where an attribute string
+belongs, and a second `stroke-width` handed to a helper that already emits one.
+
+Related words share a kind on purpose, so the deck reads as a set rather than as
+fifteen hundred unrelated pictures.
 
 ### The scheduling
 
@@ -234,11 +267,30 @@ all read from `data.languageIds`.
 **Add an interface language** — copy a block in `LOCALES` in `i18n.js` and set
 `_dir` to `'ltr'` or `'rtl'`. The header picker builds itself from that object.
 
-**Draw a word** — add `map.otter = function () { return scene(…); }` to the
-`map` in whichever of the four art files fits the category. The helpers
+**Add a themed word** — one row in a `data/themes-*.js` file, then one recipe in
+the matching `art-specs-*.js`:
+
+```js
+// data/themes-kitchen.js
+['whisk', 'kitchen', 'noun', 'batedor', 'whisk', 'batidor'],
+
+// art-specs-kitchen.js
+whisk:  k({ k: 'utensil', shape: 'whisk', grip: '#334155' }),
+```
+
+`LLC.data.add()` keeps the first definition of an id, so a themed file can
+overlap the core deck without clobbering it — and a word with no recipe still
+renders through the fallback.
+
+**Add a picture kind** — one `kind('name', function (o) { … })` in
+`art-kinds.js`, then use it from any recipe. A kind draws into a 120×120 viewBox
+and should fill it: a pictogram that leaves half the tile empty reads as a
+mistake. `shadow()`, `box()` and `cup()` are shared helpers.
+
+**Draw a core word by hand** — add `map.otter = function () { return scene(…); }`
+to the `map` in `art-nouns.js`, `art-things.js` or `art-grammar.js`. The helpers
 (`LLC.art.d` for shapes, `LLC.art.f` for the families, `LLC.art.person` for a
-figure) are shared, and a word with no drawing still renders through the
-fallback, so artwork can be added at whatever pace suits you.
+figure) are shared with the recipe engine.
 
 ---
 

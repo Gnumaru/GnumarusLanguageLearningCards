@@ -314,10 +314,30 @@ a { color: inherit; }
 
 .chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* The deck has 23 categories and 9 parts of speech: keep each group on a single
-   scrollable line instead of a wall of stacked chips. The two `local` gradients
-   scroll with the content while the two `scroll` shadows stay pinned, so a
-   shadow only shows on the side that still has chips off-screen. */
+/* Categories are laid out as one scrollable row per themed group. Fifty-odd
+   chips on a single line would be unreadable; eight short labelled rows are
+   navigable, and the grid reflows to one column on a narrow screen. */
+.chipgroups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px 22px;
+  width: 100%;
+  min-width: 0;
+}
+.chipgroup { min-width: 0; }
+.chipgroup__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* The deck is browsed one page at a time. The range line appears both above
+ * the grid (so you always know where you are) and under it, next to the
+ * controls that move you. */
 .chiprow--scroll {
   flex-wrap: nowrap;
   overflow-x: auto;
