@@ -35,14 +35,14 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 984 words, a hundred at a time. Search across every language,
+**Deck** — all 1187 words, a hundred at a time. Search across every language,
 filter by category or by one of nine parts of speech, hide what you have already
 mastered. Tap a card to flip it and read the word in every selected language,
 with a speaker button on each row that uses the voices already installed on your
 device.
 
 The deck is **paginated, 100 cards per page**, and that is the difference between
-a grid that stays quick and one that does not. Rendering 984 cards up front means
+a grid that stays quick and one that does not. Rendering 1187 cards up front means
 ~35,000 DOM nodes, ~7 MB of heap and a full grid re-render on every keystroke;
 one page of 100 is ~7,000 nodes, 2 MB, and 30 ms. The page size is a single
 constant, `DECK_PAGE_SIZE` in `app.js`.
@@ -94,16 +94,16 @@ you can move your progress between browsers or machines.
 languages appear on the cards, pronunciation, animations, and where your data
 lives.
 
-### What is in the 984 words
+### What is in the 1187 words
 
 Nouns, adjectives and verbs were only the starting point. A language learner also
 needs function words, so the deck covers nine parts of speech:
 
 | Part of speech | Words | Examples |
 | --- | --- | --- |
-| Noun | 761 | *vaca*, *pontapé*, *violino* |
+| Noun | 950 | *vaca*, *pontapé*, *violino* |
 | Adjective | 66 | *veloz*, *coredondo*, *silencioso* |
-| Verb | 57 | *correr*, *lavar*, *esquecer* |
+| Verb | 71 | *correr*, *lavar*, *esquecer* |
 | Adverb | 26 | *aqui*, *nunca*, *de repente* |
 | Pronoun | 26 | *eu*, *aquilo*, *deles* |
 | Preposition | 16 | *sob*, *entre*, *através de* |
@@ -111,22 +111,23 @@ needs function words, so the deck covers nine parts of speech:
 | Interjection | 11 | *olá*, *ai*, *parabéns* |
 | Numeral | 10 | *um* … *dez* |
 
-The 984 words sit in 53 categories, gathered into eight captioned groups so the
-filter bar stays readable:
+The 1187 words sit in 53 categories, gathered into eight captioned groups so the
+filter bar stays readable. Thirty-eight of the categories have words in them and
+fifteen are still empty, waiting to be filled:
 
-| Group | Categories | Words |
-| --- | --- | --- |
-| Food | food, drinks, kitchen | 150 |
-| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 425 |
-| Clothing | clothes, accessories | 17 |
-| Home | objects, house, furniture, garden | 40 |
-| World | nature, places, transport, time, weather, city, travel, money | 71 |
-| Work and study | technology, tools, office, school, communication, media | 11 |
-| Fun | colors, sports, music, shapes, sizes, textures, holidays, games | 42 |
-| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers, position, quantity | 228 |
+| Group | Filled | Words | Still empty |
+| --- | --- | --- | --- |
+| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 459 | — |
+| Work and study | technology, tools, office, school, communication, media | 212 | — |
+| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers | 196 | position, quantity |
+| Food | food, drinks, kitchen | 150 | — |
+| World | nature, places, transport, time | 71 | weather, city, travel, money |
+| Fun | colors, sports, music | 42 | shapes, sizes, textures, holidays, games |
+| Home | objects | 40 | house, furniture, garden |
+| Clothing | clothes | 17 | accessories |
 
-The Food and People groups were added in themed batches after the original
-hand-drawn 500; everything else is still the core deck.
+The original 500 hand-drawn words are the spine; the Food, People and Work groups
+were added afterwards in themed batches.
 
 Concrete things are drawn as concrete things. Abstract words are drawn as **scenes
 and gestures**, because a picture of *entre* has to be an idea: a hand pointing at a
@@ -179,14 +180,16 @@ assets/js/
   data/words.js                languages, groups, categories, the core 500 words
   data/themes-food.js          themed set: drinks + kitchen
   data/themes-people.js        themed set: animals … jobs (12 categories)
+  data/themes-work.js          themed set: tools, office, school, media
   art.js                       the shape vocabulary, the shared families, the
                                hand-drawn core catalogue
   art-nouns.js                 hand-drawn illustrations for the core nouns
   art-things.js                ...for jobs, objects, sports, music, places
   art-grammar.js               ...for verbs, adjectives and the grammar
-  art-kinds.js                 the picture engine: 70 parameterised kinds
+  art-kinds.js                 the picture engine: 76 parameterised kinds
   art-specs-food.js            recipes, one line per themed word
   art-specs-people.js          recipes for the people group
+  art-specs-work.js            recipes for the work and study group
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -201,7 +204,7 @@ Artwork is inline SVG built from a tiny shape vocabulary (`c`, `e`, `rc`, `p`,
 `ps`, `pl`, `ln`, `txt`), so the whole deck is a few hundred KB of text, sharp at
 any size, printable, and impossible to break with a missing file.
 
-Three things keep 984 drawings consistent rather than merely present:
+Three things keep 1187 drawings consistent rather than merely present:
 
 * **Shared families.** Drink containers, garments, buildings, vehicles, balls,
   instruments, screens and weather are drawn once and parameterised by colour and
@@ -210,7 +213,9 @@ Three things keep 984 drawings consistent rather than merely present:
   quadruped with a coat, an ear and a tail covers a horse, a fox and a goat; one
   bird with a beak covers thirty-one species; one body with a mark in a different
   place covers twenty symptoms; one figure with a different hat and tool covers
-  fifty-six jobs.
+  fifty-six jobs. One tool, one desk object, one screen, one schoolroom thing, one
+  speech bubble and one printed page cover two hundred words of work and study
+  between them.
 * **Silhouette before colour.** A recolour does not make a card distinguishable —
   six white cups with steam are six of the same card. Fish are told apart by
   build (a sardine is a sliver, a tilapia is a disc) and tail, a white bird gets an
@@ -263,12 +268,24 @@ cover the mistakes that actually happened while building this:
 | `arity.py` | too many arguments for a helper; a bare number or an unbalanced quote in the attribute slot |
 | `pathcmd.py` | a computed path that never got its `M`, so the browser silently drops the shape |
 | `dupes.py` | a themed word that repeats an existing entry in all three languages |
+| `dropped.js` | a theme row that `add()` skipped, which is how five words went missing without a word |
 
 `pathcmd.py` exists because the most expensive bug in the whole build was invisible:
 twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and
 every renderer discards such a path without a word. Forty-eight cards were quietly
 missing a limb. `fixpath.py` repaired them, and the validator now re-checks the
 generated markup so it cannot come back.
+
+`arity.py` grew the same way. It started by checking the argument *count* and
+finished by checking every slot that must hold a number, because `box(x, y, w, h,
+fill, 'stroke=…')` drops the radius into the fill and renders nothing — silently,
+in a card you have to open the app to see. The lesson is that in a positional DSL
+the errors do not throw, they draw, and a lint that only catches the loud ones is
+half a lint.
+
+`dropped.js` exists because `LLC.data.add()` keeps the first definition of an id
+and skips the rest without a word. It found a themed `fly` that the core deck
+already owned, and a `palm` that meant two different things inside a single file.
 
 ### The scheduling
 
@@ -330,6 +347,28 @@ mistake. `shadow()`, `box()` and `cup()` are shared helpers.
 to the `map` in `art-nouns.js`, `art-things.js` or `art-grammar.js`. The helpers
 (`LLC.art.d` for shapes, `LLC.art.f` for the families, `LLC.art.person` for a
 figure) are shared with the recipe engine.
+
+### Checking a change
+
+The harness lives outside the repository, in `/tmp/opencode`, so the app itself
+stays dependency-free. From a `python3 -m http.server 8080` in the project root:
+
+```sh
+node i18ncheck.js                          # labels resolve in all 3 languages
+node dropped.js                            # every theme row reached the deck
+python3 arity.py    ../…/assets/js/art*.js # numeric slots and argument counts
+python3 artlint.py  ../…/assets/js/art*.js # attribute-string mistakes
+python3 pathcmd.py  ../…/assets/js/art*.js # missing path commands
+python3 validate.py svgs-all.json          # XML + attribute sanity
+node test.js  http://127.0.0.1:8080/index.html   # 93 checks
+node edge.js  http://127.0.0.1:8080/index.html   # 32 checks
+node paging.js http://127.0.0.1:8080/index.html  # 62 checks
+```
+
+All three browser suites also run against `file:///…/index.html`, because working
+from a file with no server is the point of the project. `sheet.py` builds a contact
+sheet from `svgs-all.json` for looking at a whole category at once — that is how
+the six-identical-fish problem was found, and it is faster than reading code.
 
 ---
 

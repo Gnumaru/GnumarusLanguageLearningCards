@@ -91,6 +91,7 @@
 
   /* ------------------------------------------------------------ insects (24) */
   var insects = {
+    housefly:   r('insects', { k: 'flyer', body: '#334155', thorax: 12, legs: 1, wings: '#cbd5e1', eyes: '#dc2626' }),
     ant:         r('insects', { k: 'flyer', body: '#7f1d1d', thorax: 10, thoraxColor: '#b91c1c', legs: 1, antennae: '#7f1d1d' }),
     mosquito:    r('insects', { k: 'flyer', body: '#4a4453', thorax: 7, legs: 1, wings: '#e2e8f0', antennae: '#4a4453' }),
     cockroach:   r('insects', { k: 'flyer', body: '#7c2d12', thorax: 12, legs: 1, antennae: '#7c2d12', abdomen: 22, abdomenH: 26 }),
@@ -203,6 +204,7 @@
     wrist:     r('body', { k: 'bodyDetail', part: 'joint', limb: 'wrist' }),
     ankle:     r('body', { k: 'bodyDetail', part: 'joint', limb: 'ankle' }),
     hip:       r('body', { k: 'bodyPart', shape: 'torso', mass: 'hip' }),
+    handpalm:  r('body', { k: 'bodyDetail', part: 'palm' }),
     chest:     r('body', { k: 'bodyPart', shape: 'torso', mass: 'chest' }),
     belly:     r('body', { k: 'bodyPart', shape: 'torso', mass: 'belly' }),
     thumb:     r('body', { k: 'bodyDetail', part: 'digit', nail: 1 }),

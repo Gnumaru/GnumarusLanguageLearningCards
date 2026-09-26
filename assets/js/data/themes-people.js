@@ -78,7 +78,7 @@
   /* ---------------------------------------------------------- insects (25) */
   var insects = [
     ['ant',            'insects', 'noun', 'formiga',        'ant',           'hormiga'],
-    ['fly',            'insects', 'noun', 'mosca',          'fly',           'mosca'],
+    ['housefly',     'insects', 'noun', 'mosca',          'housefly',      'mosca'],
     ['mosquito',       'insects', 'noun', 'mosquito',       'mosquito',      'mosquito'],
     ['cockroach',      'insects', 'noun', 'barata',         'cockroach',     'cucaracha'],
     ['beetle',         'insects', 'noun', 'escaravelho',    'beetle',        'escarabajo'],
@@ -192,7 +192,7 @@
     ['hip',       'body', 'noun', 'quadril',      'hip',            'cadera'],
     ['chest',     'body', 'noun', 'peito',        'chest',          'pecho'],
     ['belly',     'body', 'noun', 'barriga',      'belly',          'barriga'],
-    ['palm',      'body', 'noun', 'palma',        'palm of the hand', 'palma'],
+    ['handpalm',  'body', 'noun', 'palma da mão', 'palm of the hand', 'palma de la mano'],
     ['thumb',     'body', 'noun', 'polegar',      'thumb',          'pulgar'],
     ['toe',       'body', 'noun', 'dedo do pé',   'toe',            'dedo del pie'],
     ['heel',      'body', 'noun', 'calcanhar',    'heel',           'talón'],
