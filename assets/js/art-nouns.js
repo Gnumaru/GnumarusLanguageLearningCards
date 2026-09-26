@@ -588,12 +588,18 @@
   };
 
   map.ice = function () {
+    /* An ice cube is almost white on a near-white background, which reads as an
+       empty box at card size, so every face gets a real edge. Geometry is the
+       usual 2D isometric: top (60,24)-(86,44)-(60,64)-(34,44), with the two side
+       faces hanging off the (60,64) corner down to y=96. */
+    var line = 'stroke="#5fa8dc" stroke-width="2.4"';
     return scene(
-      p('M34,44 L86,44 L86,96 L34,96 Z', '#cfe9fb') +
-      p('M34,44 L60,20 L86,44 Z', '#e2f2ff') +
-      p('M86,44 L60,20 L86,20 Z', '#b7dcf7') +
-      p('M34,96 L60,72 L86,96 Z', '#e2f2ff') +
-      ln(34, 44, 86, 96, '#ffffff', 2, 'opacity=".7"'),
+      p('M60,24 L86,44 L60,64 L34,44 Z', '#cfe8fa', line) +
+      p('M34,44 L60,64 L60,96 L34,96 Z', '#e3f2fd', line) +
+      p('M60,64 L86,44 L86,96 L60,96 Z', '#b3d8f3', line) +
+      ps('M44,44 C50,38 56,36 62,38', '#ffffff', 3) +
+      c(74, 82, 3, '#ffffff', 'opacity=\".55\"') +
+      c(50, 80, 2.2, '#ffffff', 'opacity=\".45\"'),
       { bg: '#e7f4ff', ground: false });
   };
 

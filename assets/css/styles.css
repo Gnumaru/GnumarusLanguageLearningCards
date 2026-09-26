@@ -495,6 +495,65 @@ a { color: inherit; }
 
 .card[hidden] { display: none; }
 
+/* ---------------------------------------------------------------- pager ---
+ * The deck is browsed one page at a time. The range line appears both above
+ * the grid (so you always know where you are) and under it, next to the
+ * controls that move you. */
+.pagerbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+.pagerbar--top {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: -6px 0 16px;
+}
+.pagerbar__range { margin: 0; font-size: .8rem; color: var(--text-mute); }
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pager__step { display: inline-flex; align-items: center; gap: 6px; }
+.pager__step:disabled { opacity: .4; cursor: default; }
+.pager__step:disabled:hover { background: transparent; }
+
+.pager__pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pager__gap { padding: 0 4px; color: var(--text-mute); }
+
+.pagebtn {
+  min-width: 38px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.pagebtn:hover { background: var(--surface-2); }
+.pagebtn.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+
 .card__face {
   position: absolute;
   inset: 0;

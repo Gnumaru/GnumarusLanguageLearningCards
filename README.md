@@ -35,16 +35,42 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 500 words in a filterable grid. Search across every language, filter
-by category or by one of nine parts of speech, hide what you have already
-mastered. Tap a card to flip it and read the word in every selected language, with
-a speaker button on each row that uses the voices already installed on your
+**Deck** — all 500 words, a hundred at a time. Search across every language,
+filter by category or by one of nine parts of speech, hide what you have already
+mastered. Tap a card to flip it and read the word in every selected language,
+with a speaker button on each row that uses the voices already installed on your
 device.
 
-Filtering never rebuilds the grid: the 500 cards are built once and the ones that
-fall out of the current search are hidden, which keeps a keystroke in the low
-single-digit milliseconds and leaves the flip state and the focus alone. The
-category and part-of-speech rows scroll horizontally, and whichever chip is
+The deck is **paginated, 100 cards per page**, and that is the difference between
+a grid that stays quick and one that does not. Rendering 500 cards up front means
+~35,000 DOM nodes, ~7 MB of heap and a full grid re-render on every keystroke;
+one page of 100 is ~7,000 nodes, 2 MB, and 30 ms. The page size is a single
+constant, `DECK_PAGE_SIZE` in `app.js`.
+
+How paging behaves:
+
+* The page lives in the hash — `#/deck/3` — so it survives a reload and can be
+  linked to. A page past the end, a zero or a negative clamps; junk falls back
+  to the first page.
+* The range line sits above the grid *and* under it, so you always know where
+  you are without scrolling back to the top.
+* Any change to the filters — typing, a chip, the learned toggle, Clear — snaps
+  back to page 1, because leaving someone on page 4 of a list that just shrank
+  is worse than losing their place.
+* Filters that fit on one page (a category of 16 words, a search with one hit)
+  simply have no pager.
+* Changing page moves the keyboard focus to the new page button, so a keyboard
+  or screen-reader user is not dropped at the top of the document.
+* Study sessions are unaffected: they are built from the scheduler, not from the
+  page you happen to be looking at.
+
+Search itself avoids rebuilding anything when it can. If the cards the new page
+needs are already in the DOM, the ones that dropped out are hidden and only the
+highlighted word is rewritten. When the page genuinely has to change, only
+`#deckResults` is replaced — never the whole view, because that would rebuild
+the search field and drop the caret mid-word.
+
+The category and part-of-speech rows scroll horizontally, and whichever chip is
 switched on is scrolled back into view — an active filter you cannot see reads
 as no filter at all.
 

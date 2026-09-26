@@ -88,10 +88,21 @@
     cats: [],
     types: [],
     hideMastered: false,
+    page: 1,
     flipped: {},
     setup: { mode: 'learn', source: null, targets: [], size: 20 },
     session: null
   };
+
+  /* The deck is browsed one page at a time. Rendering all 500 cards (or 5,000)
+     up front makes the grid, the first paint and every re-filter pay for cards
+     nobody is looking at. This is the only knob: change it and the pager, the
+     range line and the routes follow. */
+  var DECK_PAGE_SIZE = 100;
+
+  /* Set while a hash change comes from the pager, so `route()` knows to keep
+     the viewport where the reader is instead of scrolling back to the top. */
+  var paging = false;
 
   function loadUI() {
     var saved = store.get(UI_KEY, null);
@@ -193,14 +204,24 @@
     var known = ['deck', 'study', 'progress', 'settings'];
     state.view = known.indexOf(head) !== -1 ? head : 'deck';
 
+    /* `#/deck/3` is a real, linkable page of the deck. Anything unparseable
+       falls back to the first page rather than an empty grid. */
+    if (state.view === 'deck') {
+      var wanted = parseInt(parts[1], 10);
+      state.page = (wanted >= 1 && String(wanted) === parts[1]) ? wanted : 1;
+    }
+
     if (state.view === 'study' && parts[1] === 'run' && state.session) {
       state.view = 'session';
     } else if (state.view !== 'session') {
       state.session = null;   /* leaving the runner keeps a stale session around */
     }
 
+    var fromPager = paging;
+    paging = false;
     render();
-    global.scrollTo(0, 0);
+    if (fromPager) afterPageChange();
+    else global.scrollTo(0, 0);
   }
 
   function go(path) {
@@ -297,50 +318,228 @@
       '</span></div>';
   }
 
-  function deckResultsMarkup() {
-    var words = filteredWords();
-    if (!words.length) {
-      return '<div class="empty" id="deckEmpty"><strong>' + esc(t('deck.empty')) + '</strong>' +
-        '<p>' + esc(t('deck.emptyHint')) + '</p></div>';
-    }
-    return '<div class="deckgrid">' + words.map(deckCardMarkup).join('') + '</div>';
+  /**
+   * The filtered deck, split into the current page.
+   *
+   * The page is always clamped to a real one, so a filter change, a deleted
+   * word or a stale `#/deck/99` link can never leave the deck showing nothing.
+   */
+  function pagedDeck() {
+    var all = filteredWords();
+    var pages = Math.max(1, Math.ceil(all.length / DECK_PAGE_SIZE));
+    var page = state.page;
+    if (!(page >= 1)) page = 1;
+    if (page > pages) page = pages;
+    var from = (page - 1) * DECK_PAGE_SIZE;
+    return {
+      words: all.slice(from, from + DECK_PAGE_SIZE),
+      total: all.length,
+      page: page,
+      pages: pages
+    };
   }
 
   /**
-   * Re-apply the filters to the grid that is already on screen.
+   * Page numbers to offer, with `0` standing in for an ellipsis.
    *
-   * With 500 cards, replacing innerHTML on every keystroke costs ~100ms and
-   * makes typing feel sticky. Toggling `hidden` and refreshing only the
-   * highlighted word keeps a keystroke in the low single-digit milliseconds,
-   * and it leaves the flip state and focus alone.
+   * Always the first and last page plus a window around the current one, so a
+   * deck that grows to fifty pages does not produce fifty buttons.
+   */
+  function pageSequence(page, pages) {
+    var out = [];
+    var i;
+    if (pages <= 7) {
+      for (i = 1; i <= pages; i++) out.push(i);
+      return out;
+    }
+    out.push(1);
+    var from = Math.max(2, page - 1);
+    var to = Math.min(pages - 1, page + 1);
+    if (from > 2) out.push(0);
+    for (i = from; i <= to; i++) out.push(i);
+    if (to < pages - 1) out.push(0);
+    out.push(pages);
+    return out;
+  }
+
+  function pagerMarkup(pages, page) {
+    if (pages <= 1) return '';
+
+    var buttons = pageSequence(page, pages).map(function (n) {
+      if (n === 0) return '<li class="pager__gap" aria-hidden="true">…</li>';
+      var on = n === page;
+      return '<li><button type="button" class="pagebtn' + (on ? ' is-on' : '') + '" data-page="' + n + '"' +
+        (on ? ' aria-current="page"' : '') +
+        ' aria-label="' + esc(t('deck.goToPage', { page: n })) + '">' + n + '</button></li>';
+    }).join('');
+
+    return '<nav class="pager" id="deckPager" aria-label="' + esc(t('deck.pagesLabel')) + '">' +
+      '<button type="button" class="btn btn--ghost pager__step" data-page-step="-1"' +
+        (page <= 1 ? ' disabled' : '') + '>' +
+        '<span aria-hidden="true">&larr;</span> ' + esc(t('deck.prevPage')) + '</button>' +
+      '<ol class="pager__pages">' + buttons + '</ol>' +
+      '<button type="button" class="btn btn--ghost pager__step" data-page-step="1"' +
+        (page >= pages ? ' disabled' : '') + '>' +
+        esc(t('deck.nextPage')) + ' <span aria-hidden="true">&rarr;</span></button>' +
+      '</nav>';
+  }
+
+  function deckResultsMarkup() {
+    var deck = pagedDeck();
+    /* `data-current-page` and not `data-page`: the click handler looks for
+       `[data-page]` to find a pager button, and a plain `data-page` on an
+       ancestor would make `closest()` swallow the click and send it back to
+       the page it is already on. */
+    return '<div id="deckResults" data-current-page="' + deck.page + '" ' +
+      'data-total="' + deck.total + '">' + deckResultsInnerMarkup(deck) + '</div>';
+  }
+
+  function deckResultsInnerMarkup(deck) {
+    if (!deck.total) {
+      return '<div class="empty" id="deckEmpty"><strong>' + esc(t('deck.empty')) + '</strong>' +
+        '<p>' + esc(t('deck.emptyHint')) + '</p></div>';
+    }
+    return '<div class="pagerbar pagerbar--top">' + rangeLine(deck) + '</div>' +
+      '<div class="deckgrid">' + deck.words.map(deckCardMarkup).join('') + '</div>' +
+      '<div class="pagerbar">' + rangeLine(deck) + pagerMarkup(deck.pages, deck.page) + '</div>';
+  }
+
+  /** "Showing 101–200 of 360" — shown above the grid and again under the pager. */
+  function rangeLine(deck) {
+    var from = (deck.page - 1) * DECK_PAGE_SIZE + 1;
+    return '<p class="pagerbar__range">' +
+      esc(t('deck.showing', { from: from, to: from + deck.words.length - 1, total: deck.total })) +
+      '</p>';
+  }
+
+  /**
+   * Re-apply the search to the page on screen.
+   *
+   * Two paths, because a full re-render throws away the focus in the search
+   * box and the flip state:
+   *
+   *   - If every card the new page needs is already in the DOM, hide the
+   *     extras and refresh only the highlighted word. Free.
+   *   - Otherwise replace the contents of `#deckResults` — *not* the whole
+   *     view, because that would rebuild the search field and drop the caret
+   *     on every keystroke that changes which page is showing.
    */
   function refreshDeck() {
     var results = $('#deckResults');
-    if (!results) return;
+    if (!results) { render(); return; }
+
+    syncClearButton();
+
+    var deck = pagedDeck();
+    /* These describe the results as a whole, so they have to be set on every
+       path out of here — including the ones that swap the inner markup. */
+    results.setAttribute('data-current-page', String(deck.page));
+    results.setAttribute('data-total', String(deck.total));
+
     var grid = results.querySelector('.deckgrid');
-    if (!grid) { render(); return; }   /* empty state: rebuild from scratch */
+    if (!grid) {
+      results.innerHTML = deckResultsInnerMarkup(deck);
+      i18n.apply(results);
+      return;
+    }
 
     var keep = Object.create(null);
-    filteredWords().forEach(function (word) { keep[word.id] = true; });
+    deck.words.forEach(function (word) { keep[word.id] = true; });
 
-    var shown = 0;
-    $$('.card', grid).forEach(function (card) {
-      var id = card.getAttribute('data-card');
-      var show = !!keep[id];
+    var cards = $$('.card', grid);
+    var reusable = true;
+    cards.forEach(function (card) {
+      if (!keep[card.getAttribute('data-card')]) reusable = false;
+    });
+    for (var id in keep) {
+      if (!Object.prototype.hasOwnProperty.call(keep, id)) continue;
+      var found = false;
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].getAttribute('data-card') === id) { found = true; break; }
+      }
+      if (!found) { reusable = false; break; }
+    }
+
+    if (!reusable) {
+      results.innerHTML = deckResultsInnerMarkup(deck);
+      i18n.apply(results);
+      return;
+    }
+
+    cards.forEach(function (card) {
+      var show = !!keep[card.getAttribute('data-card')];
       card.hidden = !show;
       if (!show) return;
-      shown++;
-      var word = data.byId(id);
+      var word = data.byId(card.getAttribute('data-card'));
       $$('.tr', card).forEach(function (row) {
-        var lang = row.getAttribute('data-lang');
         var cell = row.querySelector('.tr__word');
-        if (cell) cell.innerHTML = highlight(data.translate(word, lang), state.q);
+        if (cell) cell.innerHTML = highlight(data.translate(word, row.getAttribute('data-lang')), state.q);
       });
     });
-    if (!shown) {
-      if (!$('#deckEmpty')) results.innerHTML = '<div class="empty" id="deckEmpty"><strong>' +
-        esc(t('deck.empty')) + '</strong><p>' + esc(t('deck.emptyHint')) + '</p></div>';
+
+    var bars = $$('.pagerbar', results);
+    if (bars.length) {
+      var pager = pagerMarkup(deck.pages, deck.page);
+      bars.forEach(function (bar, index) {
+        bar.innerHTML = rangeLine(deck) + (index === 0 ? '' : pager);
+      });
     }
+  }
+
+  /**
+   * Jump to a page of the deck.
+   *
+   * The page lives in the hash (`#/deck/3`) so it survives a reload and can be
+   * linked to. Writing the hash re-enters `route()`, which does the render, so
+   * `paging` tells it to skip the usual scroll-to-top and instead hand the
+   * viewport and the keyboard back to the grid and the new page button.
+   */
+  function setPage(page) {
+    var deck = pagedDeck();
+    var next = page;
+    if (!(next >= 1)) next = 1;
+    if (next > deck.pages) next = deck.pages;
+    state.page = next;
+    if (state.view === 'deck') {
+      paging = true;
+      global.location.hash = next > 1 ? '#/deck/' + next : '#/deck';
+    } else {
+      render();
+      afterPageChange();
+    }
+  }
+
+  function afterPageChange() {
+    var results = $('#deckResults');
+    if (results) {
+      var top = results.getBoundingClientRect().top;
+      /* Only pull the viewport when the grid has scrolled out of sight: on a
+         long page the reader may already be looking at the first row, and
+         yanking them to the top would be worse than doing nothing. */
+      if (top < 0 || top > (global.innerHeight || 800) * 0.6) {
+        results.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+    }
+    /* The pager is re-rendered, so a keyboard user needs to be put back on the
+       button for the page they just chose. */
+    var active = $('#deckPager [data-page="' + state.page + '"]');
+    if (active && active.focus) active.focus({ preventScroll: true });
+  }
+
+  function filtersActive() {
+    return !!(state.q || state.cats.length || state.types.length || state.hideMastered);
+  }
+
+  /**
+   * Keep the Clear button in step with the filters.
+   *
+   * It is always rendered and only toggled with `hidden`, because searching
+   * re-filters the results without re-rendering the filter bar — otherwise the
+   * button would come and go with the layout and never match the filters.
+   */
+  function syncClearButton() {
+    var btn = $('#clearFilters');
+    if (btn) btn.hidden = !filtersActive();
   }
 
   function deckView() {
@@ -360,10 +559,8 @@
         'aria-pressed="' + on + '">' + esc(typeLabel(type)) + '</button>';
     }).join('');
 
-    var filtersActive = !!(state.q || state.cats.length || state.types.length || state.hideMastered);
-    var clearBtn = filtersActive
-      ? '<button type="button" class="btn btn--ghost" id="clearFilters">' + esc(t('common.clear')) + '</button>'
-      : '';
+    var clearBtn = '<button type="button" class="btn btn--ghost" id="clearFilters"' +
+      (filtersActive() ? '' : ' hidden') + '>' + esc(t('common.clear')) + '</button>';
 
     return '<div class="view">' +
       viewHead('deck.title', 'deck.subtitle') +
@@ -387,7 +584,7 @@
         esc(t('deck.summaryLine', { mastered: summary.mastered, total: summary.total, due: summary.due })) +
         ' · ' + esc(t('deck.tapToHear')) +
       '</p>' +
-      '<div id="deckResults">' + deckResultsMarkup() + '</div>' +
+      deckResultsMarkup() +
       '</div>';
   }
 
@@ -1025,10 +1222,22 @@
     if (cardEl) { flipCard(cardEl); return; }
 
     var cat = el.closest('[data-cat]');
-    if (cat) { toggleIn(state.cats, cat.getAttribute('data-cat')); render(); return; }
+    if (cat) { toggleIn(state.cats, cat.getAttribute('data-cat')); state.page = 1; render(); return; }
 
     var type = el.closest('[data-type]');
-    if (type) { toggleIn(state.types, type.getAttribute('data-type')); render(); return; }
+    if (type) { toggleIn(state.types, type.getAttribute('data-type')); state.page = 1; render(); return; }
+
+    /* Both pager lookups are scoped to the pager: a bare `[data-page]` on an
+       ancestor would be picked up by closest() and send the reader straight
+       back to the page they are already on. */
+    var pageBtn = el.closest('#deckPager [data-page]');
+    if (pageBtn) { setPage(parseInt(pageBtn.getAttribute('data-page'), 10) || 1); return; }
+
+    var stepBtn = el.closest('#deckPager [data-page-step]');
+    if (stepBtn && !stepBtn.disabled) {
+      setPage(state.page + (parseInt(stepBtn.getAttribute('data-page-step'), 10) || 0));
+      return;
+    }
 
     var mode = el.closest('[data-mode]');
     if (mode) { state.setup.mode = mode.getAttribute('data-mode'); render(); return; }
@@ -1055,7 +1264,7 @@
 
     if (el.closest('#startSession')) { startSession(); return; }
     if (el.closest('#clearFilters')) {
-      state.q = ''; state.cats = []; state.types = []; state.hideMastered = false;
+      state.q = ''; state.cats = []; state.types = []; state.hideMastered = false; state.page = 1;
       render();
       return;
     }
@@ -1125,6 +1334,9 @@
     var el = event.target;
     if (!el || el.id !== 'deckSearch') return;
     state.q = el.value;
+    /* A new search is a new result set, so start it at the top instead of
+       leaving the reader on page 4 of a list that just shrank. */
+    state.page = 1;
     refreshDeck();
   }
 
@@ -1132,7 +1344,7 @@
     var el = event.target;
     if (!el) return;
 
-    if (el.id === 'hideMastered') { state.hideMastered = el.checked; render(); return; }
+    if (el.id === 'hideMastered') { state.hideMastered = el.checked; state.page = 1; render(); return; }
     if (el.id === 'uiLang') { setUiLang(el.value); return; }
     if (el.id === 'speechToggle') { ui.speech = el.checked; saveUI(); return; }
     if (el.id === 'motionToggle') { ui.motion = el.checked; saveUI(); applyMotion(); return; }
