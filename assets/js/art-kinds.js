@@ -5506,12 +5506,108 @@
         s += c(60, 60, 6, o.ink || '#0f172a');
       }
     } else if (o.mode === 'dots') {
+      /* A quantity of things, and `mark` says what the quantity is *for*.
+         Count alone was the whole parameter, so `pair`, `fewer`, `remainder`
+         and `quarter` were four different words drawn as the same N circles.
+         The mark is the difference between a count and a claim about a count. */
       s += c(60, 60, 40, o.tint || '#eef2ff');
       var total = o.count === undefined ? 5 : o.count;
+      var mark = o.mark;
+      var cols = mark === 'tally' ? 5 : (total > 6 ? 4 : total);
+      var yTop = mark === 'tally' ? 40 : 46;
+      var fill = o.fill || '#3b82f6';
+      var ink = o.ink || '#64748b';
+      var step = cols > 1 ? 60 / (cols - 1) : 0;
       for (var d = 0; d < total; d++) {
-        s += c(28 + (d % 5) * 16, 42 + Math.floor(d / 5) * 16, 6, o.fill || '#3b82f6');
+        s += c(30 + (d % cols) * step, yTop + Math.floor(d / cols) * 16, 6, fill);
       }
-      if (o.more) s += ps('M78,76 h18 M90,68 v16', o.ink || '#94a3b8', 3);
+      if (mark === 'bracket') {
+        /* an amount, gathered up */
+        s += ps('M26,74 h68 M26,74 v8 M94,74 v8 M60,80 v6', ink, 2.6);
+      } else if (mark === 'pair') {
+        /* two things that are one unit, not two things */
+        s += ps('M40,66 q20,14 40,0', ink, 2.4);
+        s += ps('M42,68 q18,3 36,0', fill, 3);
+      } else if (mark === 'each') {
+        /* every single one */
+        s += ps('M22,68 h76', ink, 2.6);
+        for (var e2 = 0; e2 < total; e2++) {
+          s += ps('M' + (30 + (e2 % cols) * step) + ',68 v9', fill, 2.2);
+        }
+      } else if (mark === 'tally') {
+        /* counting, the way it is written: strokes in fives */
+        s += ps('M24,70 h10 M30,62 v16', ink, 3);
+        s += ps('M24,84 h8', fill, 3);
+        s += ps('M42,62 v24 M52,62 v24 M62,62 v24 M72,62 v24', ink, 3);
+        s += ps('M36,60 l40,28', o.fill || '#dc2626', 3);
+      } else if (mark === 'mean') {
+        /* the average: a line through the middle of the set */
+        s += ps('M20,58 h80', '#dc2626', 2.6, 'stroke-dasharray="5 3"');
+        s += ps('M20,53 v10 M100,53 v10', ink, 2);
+      } else if (mark === 'middle') {
+        /* the middle value on a scale, not a number of things */
+        s += ps('M18,78 h84', ink, 3);
+        for (var t3 = 0; t3 < 5; t3++) s += ps('M' + (24 + t3 * 18) + ',78 v7', ink, 2);
+        s += pl('60,56 52,72 68,72', o.fill || '#f59e0b');
+      } else if (mark === 'portion') {
+        /* one part of a whole, cut and marked */
+        s += box(22, 68, 76, 16, '#f8fafc', 3, 'stroke="#94a3b8" stroke-width="1.8"');
+        s += box(22, 68, 25, 16, fill, 2);
+        s += ps('M47,64 v24 M72,64 v24', ink, 1.6, 'stroke-dasharray="3 2"');
+      } else if (mark === 'leftover') {
+        /* `remainder` is what is *left*, so the whole is drawn as an outline
+           and only the scrap that survived is filled. A shaded wedge said
+           "a fraction", which is the word next to it. */
+        s += box(20, 40, 80, 34, 'none', 3, 'stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"');
+        s += box(20, 40, 18, 34, fill, 2);
+        s += ps('M44,57 h22', ink, 2.4, 'stroke-dasharray="3 3"');
+        s += pl('70,57 62,52 62,62', ink);
+        s += ps('M74,57 h26', ink, 2.6);
+        s += ps('M20,84 h80', ink, 2);
+      } else if (mark === 'min') {
+        /* the smallest of a graded set: the answer is what is *not* the size */
+        for (var m2 = 0; m2 < 4; m2++) s += c(28 + m2 * 21, 58, 4 + m2 * 2.6, m2 === 0 ? fill : '#cbd5e1');
+        s += ps('M28,78 h13 M28,74 v8', '#dc2626', 2.4);
+      } else if (mark === 'less') {
+        /* less *of* something: a measure, and it does not reach */
+        s += box(20, 78, 80, 10, '#f8fafc', 2, 'stroke="#94a3b8" stroke-width="1.8"');
+        s += box(20, 78, 32, 10, fill, 2);
+        s += ps('M16,74 h88', ink, 2, 'stroke-dasharray="4 3"');
+      } else if (mark === 'quota') {
+        /* a target, and a bar that has reached it */
+        s += box(20, 76, 80, 14, '#f8fafc', 2, 'stroke="#94a3b8" stroke-width="1.8"');
+        s += box(20, 76, 80, 14, fill, 2);
+        s += ps('M20,64 v34 M100,64 v34', '#dc2626', 3);
+        s += ps('M20,60 h80', '#dc2626', 2.4, 'stroke-dasharray="5 3"');
+        s += pl('60,50 53,62 67,62', '#dc2626');
+      } else if (mark === 'short') {
+        /* `fewer` is fewer *of a set*, so the set is drawn whole and the part
+           that is not there is what is left. A bracket says "an amount", which
+           is a different word. */
+        for (var g2 = 0; g2 < 5; g2++) s += c(26 + g2 * 17, 44, 6, '#cbd5e1');
+        for (var g3 = 0; g3 < total; g3++) s += c(26 + g3 * 17, 68, 6, fill);
+        s += ps('M20,58 h84', ink, 1.8, 'stroke-dasharray="4 3"');
+      } else if (mark === 'sum') {
+        /* `total` is the sum of parts, not a larger amount. */
+        for (var h2 = 0; h2 < 3; h2++) s += c(28 + h2 * 14, 40, 5, fill);
+        s += ps('M62,40 h10 M67,35 v10', ink, 3);
+        for (var h3 = 0; h3 < 4; h3++) s += c(80 + h3 * 14, 40, 5, fill);
+        s += ps('M58,62 h34 M60,56 h30 M64,50 h22 M68,44 h14', ink, 2.6);
+        s += ps('M60,68 h28', fill, 3.4);
+      } else if (mark === 'batch') {
+        /* a batch: things gathered into one lot, which is the whole of the
+           word — a loose row of the same things is `several` instead. */
+        s += p('M26,44 C26,36 94,36 94,44 L94,80 C94,88 26,88 26,80 Z', '#f8fafc',
+          'stroke="#94a3b8" stroke-width="2"');
+        s += ps('M26,52 h68 M26,64 h68 M26,76 h68', '#cbd5e1', 2);
+        s += ps('M26,36 h68', '#a16207', 3);
+        s += ps('M42,32 q18,-8 36,0', '#a16207', 3);
+      } else if (mark === 'most') {
+        /* most of them, and the one that is not */
+        for (var q2 = 0; q2 < 5; q2++) s += c(28 + q2 * 16, 56, 6, q2 === 4 ? '#cbd5e1' : fill);
+        s += ps('M20,78 h80', ink, 2.6);
+      }
+      if (o.more) s += ps('M78,90 h18 M90,82 v16', ink, 3);
     } else if (o.mode === 'place') {
       /* Where a thing is, said by where the dot is.
          A grid of filled cells was the old answer and it was the wrong
@@ -5737,14 +5833,66 @@
         s += ps('M14,44 L106,44', ink, 4);
         s += pl('106,44 92,37 92,51', ink);
       }
-    } else if (o.mode === 'count') {
-      s += c(60, 60, 40, o.tint || '#eef2ff');
-      s += box(24, 32, 72, 56, 'none', 6, 'stroke="#cbd5e1" stroke-width="2"');
-      var t2 = o.total === undefined ? 10 : o.total;
-      for (var f2 = 0; f2 < t2; f2++) {
-        s += c(36 + (f2 % 5) * 12, 46 + Math.floor(f2 / 5) * 12, 4, o.fill || '#3b82f6');
+    } else if (o.mode === 'sector') {
+      /* A third or a quarter: the whole divided, one part marked. Drawing a
+         third as "three dots" was the same as drawing a pair as two dots, and
+         a dot cannot say which part of the whole it is. */
+      s += c(60, 58, 38, o.tint || '#eef2ff');
+      var n3 = o.parts === undefined ? 3 : o.parts;
+      for (var q = 0; q < n3; q++) {
+        var a0 = (q * Math.PI * 2) / n3 - Math.PI / 2;
+        var a1 = ((q + 1) * Math.PI * 2) / n3 - Math.PI / 2;
+        var x0 = 60 + Math.cos(a0) * 38, y0 = 58 + Math.sin(a0) * 38;
+        var x1 = 60 + Math.cos(a1) * 38, y1 = 58 + Math.sin(a1) * 38;
+        s += p('M60,58 L' + x0.toFixed(1) + ',' + y0.toFixed(1) + ' A38,38 0 0 1 ' +
+          x1.toFixed(1) + ',' + y1.toFixed(1) + ' Z', q === 0 ? (o.fill || '#f59e0b') : '#f8fafc',
+          'stroke="#94a3b8" stroke-width="2"');
       }
-      s += ps('M34,84 h52', o.ink || '#94a3b8', 3);
+      s += ps('M22,58 h76', o.ink || '#64748b', 1.6, 'stroke-dasharray="4 3"');
+    } else if (o.mode === 'numeral') {
+      /* The number, written. A hundred drawn as ten dots and a million as
+         eighteen was a picture that said something untrue, and a learner
+         counting the dots would have been taught a wrong fact. The digits are
+         the word, so they are drawn. */
+      s += c(60, 60, 40, o.tint || '#eef2ff');
+      var txt = String(o.value === undefined ? 12 : o.value);
+      /* Written out in full, a million and a billion differ in how many digits
+         there are — which is the actual difference between them. Both drawn as
+         "10" with an exponent differing by three segments was two pictures of
+         the same size.
+
+         Laid out by *ink*, not by advance. A seven-segment digit draws from
+         x-12 to x+20, so centring the advance widths left the last digit
+         hanging 8 units off the right of the card and put the exponent of
+         "10⁹" outside it entirely. */
+      var w2 = 30, gap = 9;
+      var xs = [], adv = 0;
+      for (var q4 = 0; q4 < txt.length; q4++) {
+        xs.push(adv);
+        adv += w2;
+        /* Grouped in threes, the way a million is written in Portuguese and
+           Spanish. It also rescues the leading 1: a seven-segment "1" is two
+           bars hard against the right of its cell, so "1000000" was
+           "|000000" until the groups gave it room. */
+        var fromRight = txt.length - 1 - q4;
+        if (fromRight > 0 && fromRight % 3 === 0) adv += gap;
+      }
+      var lastInk = xs[xs.length - 1] + 20;     /* right edge of the last digit */
+      var totalInk = o.sup ? lastInk + 8 + 32 : lastInk;
+      if (o.scale === undefined && totalInk > 104) o.scale = 104 / totalInk;
+      var sc = o.scale || 1;
+      var x0 = 60 - (totalInk * sc) / 2 - 12;    /* origin of the first digit */
+
+      s += '<g transform="translate(60 58) scale(' + sc + ') translate(-60 -58)">';
+      for (var dg = 0; dg < txt.length; dg++) {
+        s += digit(txt[dg], x0 + xs[dg], 58, o.ink || '#0f172a', 4);
+      }
+      if (o.sup) {
+        s += digit(String(o.sup), x0 + lastInk + 8, 34, o.fill || '#dc2626', 2.4);
+      }
+      s += '</g>';
+      if (o.sup) s += ps('M' + (60 + (totalInk * sc) / 2 - 26) + ',22 h20', o.ink || '#0f172a', 1.4);
+      s += ps('M' + (60 - (totalInk * sc) / 2 - 8) + ',82 h' + (totalInk * sc + 16), '#cbd5e1', 2.4);
     }
     return s;
   });

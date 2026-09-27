@@ -156,6 +156,21 @@ for (const w of D.words) {
 const specFailures = A.specFailures();
 const artFailures = A.failures();
 
+/* A recipe for a word the deck does not have. Reported rather than failed,
+   because there are a batch of them and the fix is a separate job — but it is
+   the largest piece of dead code in the project and nothing else sees it. Every
+   other check here walks the *words*, so a recipe nobody will ever look at is
+   invisible to all of them.
+   The pattern is a rename: a word needed a distinct id to stop colliding with
+   the core deck, so it became `level2` and `enormous2`, and the recipe written
+   for `level` and `enormous` was left behind drawing nothing. */
+const wordIds = new Set(D.words.map((w) => w.id));
+const deadRecipes = Object.keys(A.recipes()).filter((id) => !wordIds.has(id));
+if (deadRecipes.length) {
+  console.log('  !  ' + deadRecipes.length + ' recipes for ids the deck does not have (dead): ' +
+    deadRecipes.join(' '));
+} else ok('every recipe belongs to a word');
+
 if (thrown.length) fail(thrown.length + ' cards threw while drawing: ' + thrown.slice(0, 6).join(' '));
 else ok('no card threw while drawing');
 if (specFailures.length) fail(specFailures.length + ' recipes failed: ' + specFailures.slice(0, 6).map((x) => x.id + ' (' + x.error + ')').join(', '));

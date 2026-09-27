@@ -90,7 +90,7 @@ node tools/recolour.js --homographs     # pairs of different words, one drawing
 node tools/recolour.js --excused        # what the allowlist drops — audit this
 ```
 
-**The number today is 290 groups, 975 cards.** Worst kinds: `diagram` 165,
+**The number today is 289 groups, 947 cards.** Worst kinds: `diagram` 137,
 `outdoor` 122, `roleFigure` 92, `accessory` 75, `money` 51, `office` 47,
 `journey` 42, `message` 32, `media` 32, `tool` 29.
 
@@ -118,6 +118,44 @@ touching. First attempt gave all three the same spot and changed nothing.
 got a hull. Reading the word properly beat inventing a difference.
 
 36 words, 9 groups, 38 cards off the total.
+
+### Worked example: counting
+
+`count` was drawing a hundred as ten dots, a thousand as fifteen and a million as
+eighteen. It is a parametric drawing, it did not throw, every check passed — and
+a learner counting the dots would have been taught a wrong fact. The numbers are
+now **written**, with the seven-segment table the `media` batch already had:
+
+```
+twelve 12    hundred 100    thousand 1 000
+twenty 20    million  1 000 000    billion 10⁹
+```
+
+Two things about writing them that only showed up on the contact sheet. A
+seven-segment digit draws from `x-12` to `x+20`, so centring the advance widths
+left the last digit hanging off the card and put the exponent of `10⁹` outside it
+entirely — the layout has to be done by **ink**, not by advance. And a
+seven-segment `1` is two bars hard against the right of its cell, so `1000000`
+read as `|000000` until the digits were **grouped in threes**, which is how a
+million is written in Portuguese and Spanish anyway.
+
+The rest of the counting words needed `mark` on the `dots` mode: the count alone
+was the whole parameter, so `pair`, `fewer`, `remainder` and `quarter` were four
+words drawn as the same N circles. What separates them is what the count is *for*
+— a pair is two things that are one unit, `fewer` is a shorter set beside a whole
+one, `remainder` is what is left of something, and a quarter is the whole
+divided rather than a number of things at all.
+
+`count` (the tally) is the one worth looking at: it is the mark you actually make
+when you count, strokes in fives with a diagonal across the last group.
+
+`count` — the old mode, a box of dots under a line — is **gone**. Its last caller
+was a recipe for a word the deck does not have, and a drawing nobody can reach is
+worse than no drawing. Deleting it turned up something bigger: **55 recipes belong
+to ids that are not words.** Every check walks the *words*, so a recipe nobody
+will ever see is invisible to all of them. The pattern is a rename — a word needed
+a distinct id to stop colliding with the core deck, so `level` became `level2` and
+the recipe written for `level` was left behind. `check.js` now names them.
 
 ## The allowlist
 

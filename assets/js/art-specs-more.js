@@ -176,9 +176,9 @@
     unlike:     r('prepositions', { k: 'diagram', mode: 'compare', count: 2, fill: '#7c3aed' }),
 
     /* numbers */
-    eleven:     r('numbers', { k: 'diagram', mode: 'dots', count: 11, fill: '#ef4444' }),
-    twelve:     r('numbers', { k: 'diagram', mode: 'count', total: 12, fill: '#ef4444' }),
-    twenty:     r('numbers', { k: 'diagram', mode: 'count', total: 20, fill: '#dc2626' }),
+    eleven:     r('numbers', { k: 'diagram', mode: 'numeral', value: '11', ink: '#0f172a' }),
+    twelve:     r('numbers', { k: 'diagram', mode: 'numeral', value: '12', ink: '#0f172a' }),
+    twenty:     r('numbers', { k: 'diagram', mode: 'numeral', value: '20', ink: '#0f172a' }),
 
     /* birds */
     osprey:     r('birds', { k: 'bird', outer: '#94a3b8', inner: '#fdfdff', tail: 'long', beak: 'hook', headX: 92 }),
