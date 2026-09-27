@@ -577,7 +577,7 @@
     candycane:  r('holidays', { k: 'tool', shape: 'saw' }),
     chocolate:  r('holidays', { k: 'tool', shape: 'chisel' }),
     egg:        r('holidays', { k: 'plant', shape: 'seed', body: '#fef3c7' }),
-    bunny:      r('holidays', { k: 'roleFigure', role: 'child' }),
+    bunny:      r('holidays', { k: 'beast', coat: '#fdfdff', ear: 'long', tail: 'thin', muzzle: '#fdfdff' }),
     mask:       r('holidays', { k: 'accessory', shape: 'head', hairColour: '#7c3aed' }),
     sparkler:   r('holidays', { k: 'media', shape: 'mic', body: '#334155' }),
     feast:      r('holidays', { k: 'media', shape: 'magazine' }),
@@ -789,7 +789,7 @@
     savingsbank: r('money', { k: 'money', shape: 'vault', body: '#0f766e' }),
     coinbox:     r('money', { k: 'money', shape: 'piggy', body: '#0ea9e9', lid: '#0369a1' }),
     salaryman:   r('money', { k: 'roleFigure', role: 'worker' }),
-    lender:      r('money', { k: 'roleFigure', role: 'banker' }),
+    lender:      r('money', { k: 'roleFigure', role: 'lender' }),
     voucher:     r('money', { k: 'money', shape: 'label', paper: '#ede9fe' }),
     discount2:   r('money', { k: 'money', shape: 'label', paper: '#bbf7d0', bars: 3, slash: 1 }),
     /* shapes */

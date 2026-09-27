@@ -289,16 +289,17 @@ like nothing. A recipe naming a *shape* its kind does not have is a level below 
 and needed its own check; see `shapes.js` above.
 
 The vocabulary is positional, and positional arguments are easy to get wrong in ways
-that render as nothing at all rather than as an error. Six lints in the test harness
-cover the mistakes that actually happened while building this:
+that render as nothing at all rather than as an error. Seven lints in the test
+harness cover the mistakes that actually happened while building this:
 
 | Lint | Catches |
 | --- | --- |
-| `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter |
+| `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter; two branches on the same condition |
 | `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
 | `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
 | `shapes.js` | a recipe naming a shape its kind does not have, and a recipe that draws the kind's default |
-| `skeleton.js` | two cards that are the same drawing in different colours |
+| `tables.js` | a field a kind's lookup table sets that the drawing never reads, and a table entry that draws exactly the fallback |
+| `recolour.js` | two cards that are the same drawing in different colours, or nearly so |
 | `validate.py` | every card re-parsed as XML: duplicate attributes, a numeric `fill`, a malformed point list |
 | `sheet.py` | nothing — it draws a contact sheet so a human can look at a category at once |
 
@@ -313,7 +314,17 @@ combinatorial (coat, legs, tail, pattern, ear, face) and `roleFigure` reads a
 fixed table — so a third of them drew the same default picture as their
 neighbours. None of it threw, and all of it passed every other check.
 
-`skeleton.js` is the one that found the most. Every other check compares markup,
+`tables.js` exists for the layer below that. A kind like `roleFigure` draws
+nothing itself: it looks the name up in a table and hands the entry to a shared
+figure. So a recipe can be perfectly correct and the card still come out wrong,
+because a field *in the table* is dead. `roleFigure` read `o.badge` and `o.prop`
+but never `R.badge` and `R.prop`, so `employee` drew byte-for-byte the same
+picture as `person`, and fifty-two figures were drawn with an empty hand — a
+postman with no letter, a butcher with no cleaver, a teacher with no clipboard.
+No exception, no duplicate markup, every other check green. Nothing looked at a
+table, so nothing looked.
+
+`recolour.js` is the one that measures the most. Every other check compares markup,
 so it catches two cards that are byte-for-byte identical and says nothing about
 two cards that differ only in the colour of their top. That is a much weaker
 guarantee than it looks: the deck had 237 groups — 732 cards, two in every five —
@@ -323,31 +334,35 @@ sequence of marks and their geometry. A pouf and a footstool both drew three
 stacked ellipses; four rooms in the house were the same room in four wall colours;
 thirteen accessories were the same box.
 
-Its allowlist (`skeleton-allow.js`) is a module rather than a data file, so the
+It also scores near-misses by Jaccard over the mark sets, calibrated against pairs
+whose relationship is known: the ones that were fixed score 0.18–0.88, and the ones
+still identical score exactly 1.000. The count rises from 881 cards at exact
+equality to 1,143 at 0.70. Which line to draw is a judgement about what the deck is
+for, so the tool prints the curve rather than picking one.
+
+Its allowlist (`lib/skeleton-allow.js`) is a module rather than a data file, so the
 argument for each case sits next to the case. A colour card *is* a swatch of that
 colour, and a rhombus really is a diamond, so those are allowed. Anything else on
 that list would be an excuse, which is why there are only two entries.
 
-The honest number today is **235 groups, 718 cards**, spread over 46 of the 53
-categories, and `node breakdown.js` lists them by category so the backlog can be
-worked through in order. The worst are accessories (39), money (37), jobs (36),
-games (33), position (33) and quantity (32). Most of it predates the last batch:
-the colours and the first fifty people are from the original 500. Fixing it means
-adding parameters to kinds the same way this batch did.
-
-`shapes.js` is the other one worth knowing about, because it exists for a hole one level below
-what anything else could see. A kind is a long `if / else` over `o.shape`. A recipe
-that asks for a name the kind never mentions falls through **every** branch and
-returns the ground shadow on its own. It is not the fallback, it does not throw, and
-two such cards still differ from each other, so every other check passes while the
-card shows a picture of nothing. `ferry` and `sleigh` were blank for exactly this
-reason: both asked for a `boat` shape that had never been written.
+The honest number today is **298 groups, 881 cards**. The worst kinds are `diagram`
+(194), `outdoor` (115), `accessory` (75), `office` (47) and `money` (47). Most of it
+predates the last batch: the colours and the first fifty people are from the
+original 500. Fixing it means adding parameters to kinds the same way this batch
+did.
 
 `lint.py` exists because the most expensive bug in the whole build was invisible:
 twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and
 every renderer discards such a path without a word. Forty-eight cards were quietly
 missing a limb. The validator now re-checks the generated markup so it cannot come
 back.
+
+The same file now also refuses two branches on the same condition. `} else if (a) {`
+immediately followed by `} else if (a) {` parses perfectly, throws nothing, and
+gives every card the first branch — the empty one. There were two in the tree, both
+copy-paste accidents: `emergency` (medical) and `lightswitch` (household) were cards
+showing nothing but their shadow. No other check can see this, because from the
+outside the shape *is* a known one and the branch list is satisfied.
 
 The same lint grew to check every slot that must hold a number, because
 `box(x, y, w, h, fill, 'stroke=…')` drops the radius into the fill and renders
@@ -438,22 +453,37 @@ figure) are shared with the recipe engine.
 
 ### Checking a change
 
-The harness lives outside the repository, in `/tmp/opencode`, so the app itself
-stays dependency-free. From a `python3 -m http.server 8080` in the project root:
+The harness lives in `tools/`, inside the repository. Nothing in it is loaded by
+`index.html` and the app has no dependencies — a reader who opens `index.html`
+gets the deck and nothing else is involved. It is in the repository rather than
+in `/tmp` because `/tmp` is wiped; the harness was there once and the machine
+rebooted, and all of it had to be written again. Generated files go to
+`tools/.out/`, which is gitignored.
 
 ```sh
-python3 lint.py   ../…/assets/js/art*.js   # the shape vocabulary, positionally
-node      check.js                          # labels, drops, duplicates, artwork
-node      drop.js                           # every theme row reached the deck
-node      shapes.js                         # recipes name a shape their kind has
-node      snapshot.js                       # render every card to svgs-all.json
-python3   validate.py svgs-all.json         # XML, attributes, point lists
-node      skeleton.js                       # the same picture in other colours
-node      breakdown.js                      # ...grouped by category, to work through
-python3   sheet.py                          # one contact sheet per category
-node      test.js                           # 46 checks, both origins
-node      edge.js                           # 24 checks, both origins
+tools/run-all.sh                                # everything, in order
+tools/run-all.sh --quick                        # skip the two browser suites
 ```
+
+Individually, from the project root, with a `python3 -m http.server 8080` for the
+browser suites:
+
+```sh
+python3 tools/lint.py                           # the shape vocabulary, positionally
+node    tools/check.js                          # labels, drops, duplicates, artwork
+node    tools/drop.js                           # every theme row reached the deck
+node    tools/shapes.js                         # recipes name a shape their kind has
+node    tools/tables.js                         # every field a table sets is read
+node    tools/snapshot.js                       # render every card to .out/cards.json
+python3 tools/validate.py                       # XML, attributes, point lists
+node    tools/recolour.js --thresholds          # the same picture in other colours
+node    tools/recolour.js --by kind             # ...grouped by kind, to work through
+python3 tools/sheet.py                          # one contact sheet per category
+node    tools/test.js                           # 42 checks, both origins
+node    tools/edge.js                           # 24 checks, both origins
+```
+
+`tools/README.md` documents each check and why it exists.
 
 `test.js` and `edge.js` each run twice: once against `http://127.0.0.1:8080/` and
 once against `file:///…/index.html`, because working from a file with no server is
@@ -461,7 +491,7 @@ the point of the project. Both drive real Chrome over the DevTools protocol and
 **disable the cache first** — without that, a second run tests the previous run's
 JavaScript and a fix reads as still broken.
 
-`sheet.py` builds a contact sheet from `svgs-all.json` for looking at a whole
+`sheet.py` builds a contact sheet from `.out/cards.json` for looking at a whole
 category at once. That is how the six-identical-fish problem was found, and it is
 also how the last batch was reviewed: the first draft had five garden tools all
 rendered as the same hammer, four kinds of fog as the same three white bars, and
@@ -469,16 +499,14 @@ every room in the house drawn as the same television. None of those are duplicat
 markup, so no automated check could see them. Reading the sheet took a minute and
 found all three.
 
-Two small helpers are worth knowing about:
+Two things in the harness are worth knowing about:
 
-* `deck.js` loads the deck in the order `index.html` loads it. The themed files
+* `lib/deck.js` loads the deck in the order `index.html` loads it. The themed files
   all register under the same ids, so a harness that sorts by filename tests a
   different deck from the one the browser builds.
-* `recolour.py` holds the table that gave forty colliding words a real drawing
-  instead of a different colour. It is a record of *why* each one differs, which
-  is the part worth keeping.
-* `skeleton.js` with `breakdown.js` measures how much of that problem is left.
-  Run them before a drawing pass, not after: the number is the work list.
+* `recolour.js` measures how much of the same-picture problem is left, and prints
+  the count at several strictnesses. Run it before a drawing pass, not after: the
+  number is the work list.
 
 ---
 

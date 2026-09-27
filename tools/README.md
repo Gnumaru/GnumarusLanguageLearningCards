@@ -42,6 +42,7 @@ browser on that port is reused rather than restarted.
 | `check.js` | The gate. Word count pinned, no empty category, unique ids, every label in all three languages, no blank translation, no two words the same entry in all three, every word draws, nothing on the generated fallback, no two words share a drawing. Delegates the drop check. |
 | `drop.js` | Whether a theme file's rows actually reached the deck. |
 | `shapes.js` | Whether a recipe asks for something its kind draws — and whether the kind read the parameter at all. |
+| `tables.js` | The layer below the recipe. A kind that looks its answer up in a table (`ROLE`, `SCREENGLYPH`) draws nothing itself, so a correct recipe can still come out wrong because a field *in the table* is dead. Checks that every field a table sets is read, and that no entry draws exactly the fallback. |
 | `snapshot.js` | Renders every card to `.out/cards.json`. |
 | `validate.py` | Re-parses the rendered markup: malformed XML, duplicate attributes, a colour that arrived as a number, a bad point list. |
 | `test.js` | The app, in a real browser: cards render, a tap flips one, the revealed words match the data, the language switches and the chrome follows, the deck paginates, nothing is fetched off-origin. |
@@ -58,7 +59,7 @@ continues.
 | `recolour.js` | Cards that are the same picture in different colours, and which kinds are responsible. |
 | `sheet.py` | One contact sheet per category, plus `--groups` for the eight largest. |
 
-## The two ideas worth knowing
+## The three ideas worth knowing
 
 **Load order is data.** Every themed data file and every recipe file registers
 under the same ids, and the last registration wins. `lib/deck.js` reads the
@@ -66,6 +67,13 @@ script order out of `index.html` rather than sorting by filename, so the checks
 see the deck the browser builds. Two cards were byte-identical recipes for a
 long time and no check noticed, because the harness was loading them in a
 different order than the page.
+
+**A branch that repeats itself is a branch that never runs.** `} else if (cond) {`
+immediately followed by `} else if (cond) {` parses perfectly, throws nothing,
+and gives every card the first branch — the empty one. Two of those were in the
+tree, both copy-paste accidents, and both produced a card that drew nothing but
+its shadow. `lint.py` looks for them now. No other check can: from outside, the
+shape *is* a known one, so the branch list is satisfied.
 
 **A drawing is a position, not a colour.** `lib/skeleton.js` strips the paint off
 a card and keeps only the marks and where they are. Two cards with the same
@@ -92,7 +100,6 @@ lib/skeleton.js         the paint-stripped metric and the similarity score
 lib/skeleton-allow.js   deliberate pairs, with the argument for each
 lib/browser.js          a real page over the DevTools protocol
 ```
-
 `lib/skeleton-allow.js` is a module rather than a data file so the argument for
 each allowed pair sits next to the pair. There are two arguments and two
 entries: a colour card *is* a swatch of that colour, and a rhombus really is a

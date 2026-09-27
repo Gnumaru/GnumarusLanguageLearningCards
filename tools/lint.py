@@ -22,6 +22,7 @@ because the failures are invisible rather than because the code is unsafe.
     path      a computed path with no moveto, which every renderer drops
     points    a polygon point list carrying a command letter
     dupattr   an attribute the helper already emits, which is not valid XML
+    shadowed  two branches on the same condition, where the first has no body
 
 Run:  python3 tools/lint.py [files...]
 """
@@ -31,6 +32,9 @@ import re
 import sys
 
 ARITY = {'c': 5, 'e': 6, 'rc': 7, 'box': 7, 'p': 3, 'ps': 4, 'pl': 3, 'ln': 7}
+
+# A branch header: `} else if (<cond>) {` or `if (<cond>) {`, alone on its line.
+BRANCH = re.compile(r'^\s*\}?\s*(?:else\s+)?if\s*\((.*)\)\s*\{\s*$')
 
 # Slots that must hold a number. A quoted string here renders as a coordinate of
 # zero or is ignored, and the card comes out wrong rather than broken.
@@ -187,6 +191,31 @@ def check(path):
             problems.append('%s:%d  polygon point list starts with a command: %r'
                             % (path, at(m.start()), pts[:40]))
 
+    problems += shadowed_branches(src, path, at)
+
+    return problems
+
+
+def shadowed_branches(src, path, at):
+    """Branches that can never run.
+
+    Two `else if` headers on the same condition, back to back. The first one is
+    taken whenever the condition holds, so the second — the one with the actual
+    drawing in it — never runs. It parses, every other check passes, and the card
+    comes out blank.
+
+    This was in the tree twice, both times as a copy-paste accident, both times
+    producing a card that drew nothing but its shadow: `emergency` (medical) and
+    `lightswitch` (household). Nothing else in the harness can see it, because
+    from the outside the shape *is* a known one — the branch list is satisfied.
+    """
+    problems = []
+    lines = src.split('\n')
+    for i in range(len(lines) - 1):
+        a, b = BRANCH.match(lines[i]), BRANCH.match(lines[i + 1])
+        if a and b and a.group(1).strip() == b.group(1).strip():
+            problems.append('%s:%d  branch on %r is immediately repeated, so the second never runs'
+                            % (path, i + 2, a.group(1).strip()[:60]))
     return problems
 
 

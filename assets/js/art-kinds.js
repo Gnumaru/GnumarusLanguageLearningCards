@@ -855,6 +855,12 @@
       s += c(hx - 8, 32, 8, coat) + c(hx + 9, 32, 8, coat);
     } else if (o.ear === 'flop') {
       s += e(hx - 12, 38, 8, 16, coat) + e(hx + 6, 38, 8, 16, coat);
+    } else if (o.ear === 'long') {
+      /* A rabbit. The ears are the whole animal: nothing else in the kind
+         stands them up, so a long-eared silhouette cannot be confused with a
+         hare drawn any other way. */
+      s += e(hx - 10, 22, 5.5, 20, coat) + e(hx + 7, 20, 5.5, 22, coat);
+      s += e(hx - 10, 24, 2.4, 13, o.muzzle || '#f5e0c8') + e(hx + 7, 22, 2.4, 14, o.muzzle || '#f5e0c8');
     }
     /* muzzle */
     s += e(hx + 10, 58, 12, 9, o.muzzle || '#f5e0c8');
@@ -1558,7 +1564,6 @@
       }
       s += box(10, 88, 100, 6, o.floor || '#cbd5e1', 2);
     } else if (o.shape === 'bell') {
-    } else if (o.shape === 'bell') {
       s += p('M32,80 C32,48 88,48 88,80 Z', o.bell || '#f87171', 'stroke="' + (o.edge || '#dc2626') + '" stroke-width="2"');
       s += box(28, 80, 64, 8, o.edge || '#dc2626', 3);
       s += c(60, 94, 7, o.edge || '#dc2626');
@@ -2201,8 +2206,14 @@
 
     s += '<g' + (R.scale ? ' transform="translate(60 104) scale(' + R.scale + ') translate(-60 -104)"' : '') + '>' +
       personBody(R) + '</g>';
-    if (o.prop) s += roleProp(o.role, o.prop);
-    if (o.badge) {
+    /* A recipe may name the prop or the badge itself; the ROLE table is the
+       default. Reading only `o.prop` and `o.badge` left `R.prop` and `R.badge`
+       dead — 53 table entries asked for a thing in the hand or on the chest and
+       got a figure with neither, which is how `employee` came to draw exactly
+       the same picture as `person`. */
+    var prop = o.prop || R.prop;
+    if (prop) s += roleProp(o.role, prop);
+    if (o.badge || R.badge) {
       s += box(72, 60, 14, 18, o.badgeColor || '#0ea5e9', 3, 'stroke="#ffffff" stroke-width="1.6"');
       s += c(79, 66, 3, '#ffffff') + c(79, 72, 3, '#ffffff');
     }
@@ -2566,6 +2577,7 @@
     'scientist':  { shirt: '#fdfdff', hair: '#2f2a3d', hairStyle: 'short', prop: 'flask' },
     'journalist': { shirt: '#334155', hair: '#4a3728', hairStyle: 'short', prop: 'mic' },
     'accountant': { shirt: '#1e293b', hair: '#2f2a3d', hairStyle: 'short', glasses: '#334155', prop: 'calculator' },
+    'lender':     { shirt: '#0e7490', hair: '#2f2a3d', hairStyle: 'short', tie: '#0f172a', glasses: '#334155', prop: 'coins' },
     'librarian':  { shirt: '#0d9488', hair: '#4a3728', hairStyle: 'bun', glasses: '#334155', prop: 'book' },
     'fisherman':  { shirt: '#0369a1', hair: '#2f2a3d', hairStyle: 'short', hat: 'brim', hatColor: '#0c4a6e', prop: 'net' },
     'guard':      { shirt: '#1f2937', hair: '#2f2a3d', hairStyle: 'short', hat: 'brim', prop: 'whistle' },
@@ -3139,6 +3151,19 @@
     },
     bulb: function (x, y) {
       return c(x, y - 6, 12, '#fbbf24') + box(x - 6, y + 6, 12, 10, '#94a3b8', 2);
+    },
+    sun: function (x, y, ink, acc) {
+      /* The UV index: a sun, read on a screen. The rays are what say "sun" —
+         the disc alone is a dot, and a disc is also what `bulb` next door is.
+         The rays are the difference between the two words. */
+      var t = acc || '#fbbf24';
+      var s = c(x, y, 9, t);
+      for (var r = 0; r < 8; r++) {
+        var a = (r * Math.PI) / 4;
+        s += ps('M' + (x + Math.cos(a) * 12).toFixed(1) + ',' + (y + Math.sin(a) * 12).toFixed(1) +
+          ' L' + (x + Math.cos(a) * 19).toFixed(1) + ',' + (y + Math.sin(a) * 19).toFixed(1), t, 2.6);
+      }
+      return s;
     },
     phone: function (x, y) {
       return box(x - 12, y - 20, 24, 40, '#f8fafc', 5) + box(x - 8, y - 14, 16, 28, '#1e40af', 2);
@@ -4425,11 +4450,14 @@
       s += box(78, 86, 22, 10, o.body || '#475569', 3, 'stroke="#1e293b" stroke-width="1.4"');
       s += ps('M14,64 h8 M98,64 h8', '#94a3b8', 2, 'opacity=".7"');
     } else if (o.shape === 'panel') {
-    } else if (o.shape === 'panel') {
-      s += box(18, 26, 84, 72, o.face || '#e2e8f0', 4, 'stroke="#94a3b8" stroke-width="2"');
-      s += box(26, 34, 68, 56, o.face || '#e2e8f0', 3, 'stroke="#cbd5e1" stroke-width="1.4"');
-      if (o.glow) s += c(60, 60, 16, o.glow, 'opacity=".35"');
-      s += ps('M44,14 v10 M76,14 v10', o.arm || '#334155', 3);
+      /* A light switch. The plate says nothing on its own — it is a blank
+         rectangle, and it was drawn as one until the rocker went in. The
+         reading has to come from the rocker and the line across it, which is
+         the only part of a switch that differs from the wall around it. */
+      s += box(20, 24, 80, 74, o.face || '#e2e8f0', 5, 'stroke="#94a3b8" stroke-width="2"');
+      s += box(44, 40, 32, 42, o.slot || '#f8fafc', 4, 'stroke="#64748b" stroke-width="1.8"');
+      s += ps('M46,61 h28', '#94a3b8', 1.6);
+      if (o.glow) s += c(60, 38, 22, o.glow, 'opacity=".3"');
     } else if (o.shape === 'gutter') {
       s += box(8, 18, 104, 84, o.wall || '#cbd5e1', 3, 'stroke="#94a3b8" stroke-width="2"');
       s += p('M8,30 L112,30 L112,46 C112,54 96,54 90,50 C80,44 40,44 30,50 C24,54 8,54 8,46 Z',
