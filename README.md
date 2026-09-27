@@ -235,7 +235,17 @@ Four things keep 1816 drawings consistent rather than merely present:
   spikes; a wall is striped with a skirting board, a floor is boards running away
   from you and a ceiling has a light fitting; a metre is divided into ten, a yard
   into three, and that is the only honest difference between a ruler and another
-  ruler. A recolour is never the answer.
+  ruler. A stool is a round seat on splayed legs with a footrest, a bedside table
+  is small with one drawer and a lip, a plinth is a plain block with no overhang,
+  and a coffee table is long and low with a shelf. A cellar is stone and barrels
+  with no light; a basement is finished, with a furnace and a duct. A recolour is
+  never the answer.
+
+  The parameter is the difference between fixing this and postponing it. A
+  footstool is not "a pouf, but brown" — it is a narrower pouf that stands on a
+  ring, so the width and the ring are the parameters and the colour is not. A
+  per-word variant produces a `footstool` shape identical to `pouf` and moves the
+  collision one word along, which is exactly what happened the first time.
 * **A draw-time safety net.** `LLC.art.get()` catches anything a drawing throws
   and falls back to deterministic generated geometry, so one bad card can never
   break a page — but it also records the failure in `LLC.art.failures()`, and the
@@ -285,10 +295,33 @@ cover the mistakes that actually happened while building this:
 | `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
 | `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
 | `shapes.js` | a recipe naming a `shape`, `mode` or `role` its kind does not have |
+| `skeleton.js` | two cards that are the same drawing in different colours |
 | `validate.py` | every card re-parsed as XML: duplicate attributes, a numeric `fill`, a malformed point list |
 | `sheet.py` | nothing — it draws a contact sheet so a human can look at a category at once |
 
-`shapes.js` is the newest of these and exists because of a hole one level below
+`skeleton.js` is the one that found the most. Every other check compares markup,
+so it catches two cards that are byte-for-byte identical and says nothing about
+two cards that differ only in the colour of their top. That is a much weaker
+guarantee than it looks: the deck had 237 groups — 732 cards, two in every five —
+where the picture was the same shape in different paint. It strips the fill, the
+stroke and the style attributes off every card and compares what is left: the
+sequence of marks and their geometry. A pouf and a footstool both drew three
+stacked ellipses; four rooms in the house were the same room in four wall colours;
+thirteen accessories were the same box.
+
+Its allowlist (`skeleton-allow.js`) is a module rather than a data file, so the
+argument for each case sits next to the case. A colour card *is* a swatch of that
+colour, and a rhombus really is a diamond, so those are allowed. Anything else on
+that list would be an excuse, which is why there are only two entries.
+
+The honest number today is **235 groups, 718 cards**, spread over 46 of the 53
+categories, and `node breakdown.js` lists them by category so the backlog can be
+worked through in order. The worst are accessories (39), money (37), jobs (36),
+games (33), position (33) and quantity (32). Most of it predates the last batch:
+the colours and the first fifty people are from the original 500. Fixing it means
+adding parameters to kinds the same way this batch did.
+
+`shapes.js` is the other one worth knowing about, because it exists for a hole one level below
 what anything else could see. A kind is a long `if / else` over `o.shape`. A recipe
 that asks for a name the kind never mentions falls through **every** branch and
 returns the ground shadow on its own. It is not the fallback, it does not throw, and
@@ -401,6 +434,8 @@ node      drop.js                           # every theme row reached the deck
 node      shapes.js                         # recipes name a shape their kind has
 node      snapshot.js                       # render every card to svgs-all.json
 python3   validate.py svgs-all.json         # XML, attributes, point lists
+node      skeleton.js                       # the same picture in other colours
+node      breakdown.js                      # ...grouped by category, to work through
 python3   sheet.py                          # one contact sheet per category
 node      test.js                           # 46 checks, both origins
 node      edge.js                           # 24 checks, both origins
@@ -428,6 +463,8 @@ Two small helpers are worth knowing about:
 * `recolour.py` holds the table that gave forty colliding words a real drawing
   instead of a different colour. It is a record of *why* each one differs, which
   is the part worth keeping.
+* `skeleton.js` with `breakdown.js` measures how much of that problem is left.
+  Run them before a drawing pass, not after: the number is the work list.
 
 ---
 

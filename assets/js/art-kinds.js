@@ -4089,9 +4089,17 @@
         s += box(20, 52, 80, 44, o.body || '#78350f', 5, 'stroke="#451a03" stroke-width="2"');
         s += p('M20,52 L60,30 L100,52 Z', o.lid || '#92400e', 'stroke="#451a03" stroke-width="2"');
         s += p('M60,30 L100,52 L100,60 L60,38 Z', '#1c1917', 'opacity=".35"');
-        s += e(60, 62, 30, 8, o.liner || '#fdf6e8', 'stroke="#451a03" stroke-width="1.4"');
-        for (var or2 = 0; or2 < 3; or2++) {
-          s += c(44 + or2 * 16, 60, 5, o.mark || '#fbbf24', 'stroke="#b45309" stroke-width="1.4"');
+        var oRx = o.wide2 ? 38 : 26;
+        s += e(60, 62, oRx, 8, o.liner || '#fdf6e8', 'stroke="#451a03" stroke-width="1.4"');
+        var oN = o.contents === true ? 3 : (o.contents || 0);
+        for (var or2 = 0; or2 < oN; or2++) {
+          var orx = 60 - oRx + 8 + or2 * ((oRx * 2 - 16) / Math.max(1, oN - 1));
+          s += c(orx, 60, 5, o.mark || '#fbbf24', 'stroke="#b45309" stroke-width="1.4"');
+        }
+        if (o.fold) {
+          /* A wardrobe box is wider and has something folded over the edge. */
+          s += p('M' + (60 - oRx) + ',58 q' + oRx + ',-20 ' + (oRx * 2) + ',0 l0,18 q' + (-oRx) + ',20 ' +
+            (-oRx * 2) + ',0 Z', o.lid || '#cbd5e1', 'stroke="#64748b" stroke-width="1.4"');
         }
         return s;
       }
@@ -4302,19 +4310,49 @@
         s += ps('M85,34 v-8 M81,28 h8', '#64748b', 2.4);
         s += c(85, 22, 4, '#94a3b8');
       } else if (o.furniture === 'hall') {
+        /* A hallway runs from the front door to the rooms: a runner, hooks. */
         s += box(20, 58, 28, 18, '#78350f', 2, 'stroke="#451a03" stroke-width="1.6"');
         s += c(42, 68, 3, '#fbbf24');
         s += box(66, 44, 26, 32, '#e2e8f0', 2, 'stroke="#94a3b8" stroke-width="1.6"');
         s += ps('M79,44 v32 M66,60 h26', '#0369a1', 1.6);
-        s += box(24, 76, 22, 4, '#a89878', 1.5);
+        s += p('M30,78 L84,78 L90,94 L24,94 Z', '#be123c', 'stroke="#881337" stroke-width="1.4"');
+        s += ps('M32,83 h50 M30,88 h54', '#fecdd3', 1.6);
+        s += ps('M52,58 v14 M58,58 v14', '#94a3b8', 2.4);
+        s += p('M50,72 C50,62 62,62 62,72 L62,86 L50,86 Z', '#334155', 'stroke="#1f2937" stroke-width="1.4"');
+      } else if (o.furniture === 'foyer') {
+        /* A foyer is the room inside the door: a mirror, a console, a lamp. */
+        s += e(40, 40, 18, 22, '#bae6fd', 'stroke="#94a3b8" stroke-width="3"');
+        s += ps('M30,28 l-6,-8 M28,44 l-8,-4', '#ffffff', 3, 'opacity=".8"');
+        s += box(62, 52, 40, 8, '#a16207', 2, 'stroke="#6b4423" stroke-width="1.6"');
+        s += ps('M68,60 v22 M96,60 v22', '#78350f', 4);
+        s += box(74, 40, 16, 12, '#fbbf24', 2, 'stroke="#b45309" stroke-width="1.4"');
+        s += ps('M82,40 v-8 M78,34 h8', '#92400e', 2.2);
+        s += p('M18,84 L104,84 L98,100 L24,100 Z', '#cbd5e1', 'stroke="#94a3b8" stroke-width="1.4"');
+        s += c(30, 90, 5, '#94a3b8', 'opacity=".7"');
+        s += c(84, 92, 4, '#94a3b8', 'opacity=".7"');
       } else if (o.furniture === 'cellar') {
+        /* A cellar is underground: stone courses, a barrel, a rack, no light. */
         s += box(14, 22, 44, 52, '#78716c', 3, 'stroke="#57534e" stroke-width="1.6"');
-        s += box(20, 30, 32, 8, '#44403c', 2);
-        s += box(20, 44, 32, 8, '#44403c', 2);
-        s += box(20, 58, 32, 8, '#44403c', 2);
-        s += e(82, 60, 12, 14, '#a16207', 'stroke="#6b4423" stroke-width="1.6"');
-        s += e(82, 44, 10, 6, '#fbbf24', 'stroke="#b45309" stroke-width="1.2"');
-        s += box(66, 74, 34, 12, '#57534e', 2, 'stroke="#44403c" stroke-width="1.4"');
+        for (var cst = 0; cst < 4; cst++) {
+          for (var csc = 0; csc < 2; csc++) {
+            s += box(16 + csc * 23 + (cst % 2) * 11, 26 + cst * 12, 20, 9, '#a8a29e', 1.2, 'opacity=".8"');
+          }
+        }
+        s += ps('M44,22 v52', '#44403c', 1.4);
+        s += p('M70,74 C70,50 94,50 94,74 L94,88 L70,88 Z', '#a16207', 'stroke="#6b4423" stroke-width="1.6"');
+        s += ps('M70,60 h24 M70,70 h24', '#6b4423', 1.6, 'opacity=".7"');
+        s += box(66, 90, 28, 8, '#57534e', 2, 'stroke="#44403c" stroke-width="1.4"');
+      } else if (o.furniture === 'furnace') {
+        /* A basement is finished: a furnace, a duct, a window down at grade. */
+        s += box(14, 32, 40, 58, '#cbd5e1', 3, 'stroke="#64748b" stroke-width="1.8"');
+        s += box(20, 38, 28, 20, '#94a3b8', 2, 'stroke="#64748b" stroke-width="1.4"');
+        s += c(34, 66, 8, '#334155', 'stroke="#1f2937" stroke-width="1.6"');
+        s += ps('M28,66 h12 M34,60 v12', '#e2e8f0', 2);
+        s += rc(56, 20, 18, 16, '#cbd5e1', 3, 'stroke="#64748b" stroke-width="1.4"');
+        s += ps('M65,36 v44', '#94a3b8', 7);
+        s += ps('M65,80 q0,8 10,8', '#94a3b8', 7);
+        s += box(78, 60, 28, 30, '#bae6fd', 3, 'stroke="#0369a1" stroke-width="1.6"');
+        s += ps('M92,60 v30 M78,75 h28', '#0369a1', 1.8);
       } else {
         s += box(20, 54, 40, 22, '#a16207', 2, 'stroke="#6b4423" stroke-width="1.6"');
         s += box(66, 46, 26, 30, '#cbd5e1', 2, 'stroke="#94a3b8" stroke-width="1.6"');
@@ -4452,12 +4490,44 @@
       if (o.stacked) s += p('M46,50 C46,40 94,40 94,50 L94,58 L46,58 Z', o.stacked);
       if (o.skirt) s += box(12, 96, 96, 6, o.skirt, 2);
     } else if (o.shape === 'chair') {
+      /* Seat, back, legs. A bench has no back, a deckchair folds flat, and a
+         rocking chair has rockers instead of feet. */
+      if (o.noBack) {
+        s += box(12, 56, 96, 12, o.seat || '#a16207', 3, 'stroke="#6b4423" stroke-width="2"');
+        s += ps('M20,68 L12,100 M100,68 L108,100 M18,86 h84', o.frame || '#78350f', 5);
+        s += ps('M12,56 h96', o.frame || '#78350f', 4);
+        return s;
+      }
+      if (o.reclined) {
+        s += p('M28,58 L84,46 L96,60 L44,76 Z', o.seat || '#f1f5f9', 'stroke="#0369a1" stroke-width="2"');
+        s += ps('M30,50 L22,78 M86,42 L98,68', o.frame || '#0ea9e9', 4);
+        s += ps('M24,80 L88,58', o.frame || '#0ea9e9', 5);
+        s += ps('M22,78 L12,100 M98,68 L106,92', o.frame || '#0ea9e9', 4);
+        return s;
+      }
       s += box(36, 22, 48, 40, o.seat || '#334155', 8, 'stroke="#1f2937" stroke-width="2"');
       s += box(24, 60, 72, 14, o.frame || '#a16207', 4, 'stroke="#6b4423" stroke-width="2"');
       s += ps('M32,74 L26,98 M88,74 L94,98 M32,74 L88,74', o.frame || '#a16207', 5);
-      if (o.cushion) s += e(60, 64, 34, 8, o.cushion, 'stroke="#94a3b8" stroke-width="1.4"');
+      if (o.pad) {
+        /* An armchair is padded: a seat cushion and two rolled arms. */
+        s += e(60, 64, 34, 8, o.pad, 'stroke="#94a3b8" stroke-width="1.4"');
+        s += e(28, 50, 8, 20, o.pad, 'stroke="#94a3b8" stroke-width="1.4"');
+        s += e(92, 50, 8, 20, o.pad, 'stroke="#94a3b8" stroke-width="1.4"');
+        s += c(46, 38, 4, o.pad, 'opacity=".6"') + c(74, 38, 4, o.pad, 'opacity=".6"');
+      }
+      if (o.woven) {
+        s += ps('M40,30 h40 M40,42 h40 M40,54 h40', o.woven, 2, 'opacity=".8"');
+      }
       if (o.rocker) s += ps('M20,100 q40,10 80,0', o.frame || '#a16207', 5);
     } else if (o.shape === 'sofa') {
+      if (o.reclined) {
+        /* A chaise longue: a seat with one end raised, on a low frame. */
+        s += p('M14,66 L74,50 L86,62 L26,80 Z', o.seat || '#7c3aed', 'stroke="#5b21b6" stroke-width="2"');
+        s += p('M14,66 L74,50 L74,42 L14,58 Z', o.back || '#a78bfa', 'stroke="#5b21b6" stroke-width="1.6"');
+        s += ps('M26,80 L18,102 M86,62 L94,86 M18,94 h76', o.arm || '#6d28d9', 4);
+        s += e(48, 70, 16, 5, o.cushions || '#c4b5fd', 'opacity=".8"');
+        return s;
+      }
       s += box(12, 46, 96, 30, o.seat || '#6366f1', 8, 'stroke="#4338ca" stroke-width="2"');
       s += box(20, 30, 80, 22, o.back || '#818cf8', 8, 'stroke="#4338ca" stroke-width="2"');
       s += box(6, 46, 18, 32, o.arm || '#4f46e5', 6, 'stroke="#4338ca" stroke-width="1.6"');
@@ -4465,31 +4535,101 @@
       s += ps('M20,76 v16 M100,76 v16', o.leg || '#4338ca', 5);
       if (o.cushions) s += e(42, 44, 14, 10, o.cushions) + e(78, 44, 14, 10, o.cushions);
     } else if (o.shape === 'table') {
-      s += box(10, 48, 100, 14, o.top || wood, 3, 'stroke="#6b4423" stroke-width="2"');
-      s += ps('M24,62 L18,100 M96,62 L102,100', o.leg || wood, 6);
-      s += ps('M26,80 h68', o.leg || wood, 5);
+      /* Ten words are a table, and a table is only a table if you can tell
+         which one. What differs is the top (round, square, overhanging or not),
+         the legs (splayed, straight, splayed and braced) and what is under it
+         (a drawer, a shelf, a step, nothing). Colour is not one of those. */
+      if (o.round) {
+        s += e(60, 50, o.wide2 ? 42 : 28, 11, o.top || wood, 'stroke="#6b4423" stroke-width="2"');
+        s += e(60, 54, o.wide2 ? 38 : 24, 8, o.edge || '#92400e', 'opacity=".55"');
+        if (o.splay) {
+          s += ps('M38,56 L24,100 M82,56 L96,100', o.leg || wood, 6);
+          s += ps('M30,84 h60', o.leg || wood, 4);
+        } else {
+          s += ps('M42,58 L40,100 M78,58 L80,100', o.leg || wood, 6);
+        }
+      } else if (o.pedestal) {
+        /* A plinth is a plain block: no overhang, no stretcher, nothing. */
+        s += box(34, 30, 52, 14, o.top || wood, 2, 'stroke="#6b4423" stroke-width="2"');
+        s += box(38, 44, 44, 48, o.leg || '#a8a29e', 2, 'stroke="#6b4423" stroke-width="1.6"');
+        s += box(32, 92, 56, 10, o.cap || '#92400e', 2, 'stroke="#6b4423" stroke-width="1.6"');
+        s += ps('M44,50 v36 M76,50 v36', o.cap || '#92400e', 1.6, 'opacity=".6"');
+      } else if (o.low) {
+        /* A coffee table is long and low, with the shelf underneath. */
+        s += box(6, 62, 108, 12, o.top || wood, 3, 'stroke="#6b4423" stroke-width="2"');
+        s += ps('M20,74 L14,102 M100,74 L106,102', o.leg || wood, 6);
+        s += box(22, 84, 76, 6, o.shelf || '#c2843a', 2, 'stroke="#6b4423" stroke-width="1.4"');
+        s += box(46, 76, 28, 5, o.accent || '#94a3b8', 2);
+      } else {
+        s += box(o.overhang === 0 ? 22 : 10, 48, o.overhang === 0 ? 76 : 100, 14,
+          o.top || wood, 3, 'stroke="#6b4423" stroke-width="2"');
+        if (o.overhang !== 0) {
+          s += box(6, 56, 108, 6, o.edge || '#92400e', 2, 'opacity=".5"');
+        }
+        if (o.splay) {
+          s += ps('M24,62 L16,100 M96,62 L104,100', o.leg || wood, 6);
+          s += ps('M24,92 h72', o.leg || wood, 4);
+        } else {
+          s += ps('M26,62 L22,100 M94,62 L98,100', o.leg || wood, 6);
+          s += ps('M26,82 h68', o.leg || wood, 5);
+        }
+        if (o.lip) s += box(14, 60, 92, 5, o.lip, 2, 'stroke="#6b4423" stroke-width="1.2"');
+      }
       var rows = o.drawers === true ? 2 : (o.drawers || 0);
       for (var dr = 0; dr < rows; dr++) {
         var dy = 66 + dr * 11;
         if (dy > 88) break;
         s += box(34, dy, 52, 9, o.drawerFace || o.drawers || '#b45309', 2, 'stroke="#6b4423" stroke-width="1.2"');
-        s += ps('M52,' + (dy + 4) + ' h16', o.pull || '#fbbf24', 2.4);
+        if (o.knob) s += c(60, dy + 4, 3.4, o.pull || '#fbbf24', 'stroke="#b45309" stroke-width="1"');
+        else s += ps('M52,' + (dy + 4) + ' h16', o.pull || '#fbbf24', 2.4);
+      }
+      if (o.door) {
+        /* A sideboard is a wide box with two doors, not a table with a top. */
+        s += box(24, 46, 72, 44, o.door, 3, 'stroke="#6b4423" stroke-width="1.8"');
+        s += ps('M60,48 v40', '#6b4423', 1.6);
+        s += c(54, 68, 2.6, o.pull || '#fbbf24') + c(66, 68, 2.6, o.pull || '#fbbf24');
+        s += ps('M34,88 l6,-6 M86,88 l-6,-6', '#6b4423', 3);
       }
       if (o.mirror) {
-        s += e(60, 34, 26, 20, o.mirror, 'stroke="#94a3b8" stroke-width="3"');
-        s += ps('M60,54 v-6', '#94a3b8', 3);
+        s += e(60, 32, 26, 20, o.mirror, 'stroke="#94a3b8" stroke-width="3"');
+        s += ps('M60,52 v-6', '#94a3b8', 3);
       }
       if (o.step) {
         s += box(20, 86, 40, 12, o.step, 3, 'stroke="#6b4423" stroke-width="1.6"');
         s += box(60, 86, 40, 12, o.step, 3, 'stroke="#6b4423" stroke-width="1.6"');
       }
     } else if (o.shape === 'storage') {
+      /* A wardrobe has two tall doors, a dresser three wide drawers, a sideboard
+         two doors over legs, and a cupboard one short door. Same carcass, four
+         different objects. */
       s += box(18, 14, 84, 88, o.body || '#a8a29e', 5, 'stroke="#57534e" stroke-width="2"');
-      s += box(24, 20, 36, 38, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.6"');
-      s += box(62, 20, 36, 38, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.6"');
-      s += ps('M56,38 v6 M64,38 v6 M56,40 h8', o.handle || '#475569', 3);
-      if (o.hanging) s += ps('M60,14 v-6', '#94a3b8', 3);
-      if (o.legs) s += ps('M28,102 v8 M92,102 v8', '#57534e', 5);
+      if (o.single) {
+        /* A cupboard: one short door, on a plinth, with a shelf showing. */
+        s += box(26, 32, 68, 44, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.6"');
+        s += c(86, 54, 3.4, o.handle || '#475569');
+        s += box(30, 82, 60, 6, o.door || '#cbd5e1', 2, 'stroke="#78716c" stroke-width="1.2"');
+        s += box(24, 100, 72, 8, o.body || '#a8a29e', 2, 'stroke="#57534e" stroke-width="1.4"');
+        s += e(60, 24, 26, 8, '#cbd5e1', 'opacity=".35"');
+      } else if (o.drawers) {
+        /* A dresser: a stack of wide drawers, one per row. */
+        for (var dw = 0; dw < 3; dw++) {
+          s += box(24, 22 + dw * 26, 72, 22, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.4"');
+          s += ps('M' + (38 + dw * 2) + ',' + (33 + dw * 26) + ' h44', o.handle || '#475569', 2.6);
+        }
+        s += box(16, 100, 88, 6, o.body || '#a8a29e', 2, 'stroke="#57534e" stroke-width="1.4"');
+      } else {
+        s += box(24, 20, 36, 38, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.6"');
+        s += box(62, 20, 36, 38, o.door || '#cbd5e1', 3, 'stroke="#78716c" stroke-width="1.6"');
+        s += ps('M56,38 v6 M64,38 v6 M56,40 h8', o.handle || '#475569', 3);
+      }
+      if (o.hanging) {
+        s += ps('M60,14 v-6', '#94a3b8', 3);
+        s += c(60, 6, 4, '#94a3b8');
+      }
+      if (o.legs) {
+        s += ps('M28,102 v8 M92,102 v8', '#57534e', 5);
+        s += box(14, 96, 92, 8, o.body || '#a8a29e', 2, 'stroke="#57534e" stroke-width="1.4"');
+      }
     } else if (o.shape === 'shelf') {
       s += box(14, 20, 10, 80, o.side || wood, 2, 'stroke="#6b4423" stroke-width="1.6"');
       s += box(96, 20, 10, 80, o.side || wood, 2, 'stroke="#6b4423" stroke-width="1.6"');
@@ -4501,7 +4641,56 @@
         }
       }
     } else if (o.shape === 'soft') {
-      if (o.fold) {
+      if (o.pouf) {
+        /* A round soft seat. How wide it is and whether it stands on a ring is
+           the whole difference between a pouf and a footstool, so both are
+           parameters: a variant per word only moves the collision elsewhere. */
+        var pRx = o.wide2 ? 40 : 24;
+        var pRy = o.wide2 ? 24 : 20;
+        var pBy = o.foot ? 60 : 78;
+        s += e(60, pBy, pRx, pRy, o.body || '#f59e0b', 'stroke="#be185d" stroke-width="2"');
+        s += e(60, pBy - pRy * 0.55, pRx - 4, pRy * 0.8, o.body || '#f59e0b', 'stroke="#be185d" stroke-width="1.6"');
+        s += c(60, pBy - pRy * 0.55, 4, o.stitch || '#b45309');
+        for (var psg = 0; psg < 4; psg++) {
+          var psa = psg * Math.PI / 2;
+          s += ps('M' + (60 + Math.cos(psa) * (pRx - 8)).toFixed(1) + ',' +
+            (pBy - pRy * 0.55 + Math.sin(psa) * (pRy * 0.5)).toFixed(1) +
+            ' l' + (Math.cos(psa) * 10).toFixed(1) + ',' + (Math.sin(psa) * 5).toFixed(1), o.stitch || '#b45309', 1.6);
+        }
+        if (o.foot) {
+          s += e(60, pBy + pRy - 2, pRx - 6, 6, o.lighter || '#fde68a', 'stroke="#be185d" stroke-width="1.4"');
+          s += e(60, 100, pRx - 4, 5, o.stitch || '#b45309', 'opacity=".5"');
+        } else {
+          s += e(60, 100, pRx - 8, 6, o.lighter || '#fde68a', 'opacity=".6"');
+        }
+      } else if (o.flat) {
+        /* A flat soft thing. A pillow is a fat ellipse, a cushion has corners
+           and a rug is very wide, low and fringed — proportion says which. */
+        var fRx = o.wide2 ? 50 : 42;
+        var fRy = o.rug ? 22 : (o.square ? 30 : 32);
+        var fBy = o.rug ? 84 : 60;
+        if (o.square) {
+          s += box(60 - fRx, fBy - fRy, fRx * 2, fRy * 2, o.body || '#0ea9e9', 12,
+            'stroke="#0369a1" stroke-width="2"');
+          s += box(60 - fRx + 7, fBy - fRy + 7, fRx * 2 - 14, fRy * 2 - 14, o.lighter || '#bae6fd', 9);
+          s += c(60, fBy, 3.4, o.stitch || '#0369a1');
+        } else {
+          s += e(60, fBy, fRx, fRy, o.body || '#fdfdff', 'stroke="#0369a1" stroke-width="2"');
+          s += e(60, fBy, fRx - 8, fRy - 7, o.lighter || '#e2e8f0', 'stroke="#0369a1" stroke-width="1.4"');
+          s += c(60, fBy, 3.4, o.stitch || '#0369a1');
+        }
+        for (var csg = 0; csg < 4; csg++) {
+          var csa = csg * Math.PI / 2 + Math.PI / 4;
+          s += ps('M' + (60 + Math.cos(csa) * (fRx - 6)).toFixed(1) + ',' +
+            (fBy + Math.sin(csa) * (fRy - 4)).toFixed(1) +
+            ' l' + (Math.cos(csa) * 9).toFixed(1) + ',' + (Math.sin(csa) * 5).toFixed(1), o.stitch || '#0369a1', 1.4);
+        }
+        if (o.rug) {
+          for (var frg = 0; frg < 9; frg++) {
+            s += ps('M' + (14 + frg * 11) + ',' + (fBy + fRy - 2) + ' v10', o.stitch || '#0369a1', 1.6);
+          }
+        }
+      } else if (o.fold) {
         /* Folded in three, so it stands up like a stack rather than lying flat. */
         s += box(18, 56, 84, 16, o.body || '#fda4af', 4, 'stroke="#be185d" stroke-width="2"');
         s += box(22, 42, 76, 15, o.lighter || '#fecdd3', 4, 'stroke="#be185d" stroke-width="1.6"');
@@ -4509,10 +4698,41 @@
         s += ps('M20,64 q40,8 80,0 M24,50 q36,7 72,0', o.stitch || '#be185d', 1.8, 'opacity=".6"');
         return s;
       }
-      s += e(60, 70, 44, 22, o.body || '#fda4af', 'stroke="#be185d" stroke-width="2"');
-      s += e(60, 50, 32, 20, o.body || '#fda4af', 'stroke="#be185d" stroke-width="2"');
-      s += e(60, 40, 20, 14, o.lighter || '#fecdd3', 'stroke="#be185d" stroke-width="1.6"');
-      if (o.stitch) s += ps('M24,70 q36,10 72,0', o.stitch, 2, 'stroke-dasharray="3 3"');
+      if (o.pouf) {
+        /* A pouf is a round pouf: a disc on the floor with a button on top. */
+        s += e(60, 78, 34, 22, o.body || '#f59e0b', 'stroke="#be185d" stroke-width="2"');
+        s += e(60, 66, 30, 18, o.body || '#f59e0b', 'stroke="#be185d" stroke-width="1.6"');
+        s += c(60, 66, 4, o.stitch || '#b45309');
+        for (var psg = 0; psg < 4; psg++) {
+          var psa = psg * Math.PI / 2;
+          s += ps('M' + (60 + Math.cos(psa) * 18).toFixed(1) + ',' + (66 + Math.sin(psa) * 10).toFixed(1) +
+            ' l' + (Math.cos(psa) * 12).toFixed(1) + ',' + (Math.sin(psa) * 7).toFixed(1), o.stitch || '#b45309', 1.6);
+        }
+        s += e(60, 100, 26, 6, o.lighter || '#fde68a', 'opacity=".6"');
+      } else if (o.flat) {
+        /* A cushion lies flat, seen from above, with a seam round the edge. */
+        s += e(60, 62, 44, 32, o.body || '#0ea9e9', 'stroke="#0369a1" stroke-width="2"');
+        s += e(60, 62, 36, 25, o.lighter || '#bae6fd', 'stroke="#0369a1" stroke-width="1.4"');
+        s += c(60, 62, 4, o.stitch || '#0369a1');
+        for (var csg = 0; csg < 4; csg++) {
+          var csa = csg * Math.PI / 2 + Math.PI / 4;
+          s += ps('M' + (60 + Math.cos(csa) * 26).toFixed(1) + ',' + (62 + Math.sin(csa) * 18).toFixed(1) +
+            ' l' + (Math.cos(csa) * 12).toFixed(1) + ',' + (Math.sin(csa) * 8).toFixed(1), o.stitch || '#0369a1', 1.6);
+        }
+      } else if (o.bolster) {
+        /* A bolster is a long roll: two ends, a seam along the side. */
+        s += e(60, 62, 46, 18, o.body || '#fda4af', 'stroke="#be185d" stroke-width="2"');
+        s += e(60, 62, 38, 11, o.lighter || '#fecdd3', 'stroke="#be185d" stroke-width="1.4"');
+        s += ps('M22,54 C34,44 86,44 98,54', o.stitch || '#be185d', 1.6, 'stroke-dasharray="3 3"');
+        s += ps('M24,70 q36,10 72,0', o.stitch || '#be185d', 1.6, 'stroke-dasharray="3 3"');
+        s += e(24, 62, 8, 16, o.lighter || '#fecdd3', 'stroke="#be185d" stroke-width="1.4"');
+        s += e(96, 62, 8, 16, o.lighter || '#fecdd3', 'stroke="#be185d" stroke-width="1.4"');
+      } else {
+        s += e(60, 70, 44, 22, o.body || '#fda4af', 'stroke="#be185d" stroke-width="2"');
+        s += e(60, 50, 32, 20, o.body || '#fda4af', 'stroke="#be185d" stroke-width="2"');
+        s += e(60, 40, 20, 14, o.lighter || '#fecdd3', 'stroke="#be185d" stroke-width="1.6"');
+        if (o.stitch) s += ps('M24,70 q36,10 72,0', o.stitch, 2, 'stroke-dasharray="3 3"');
+      }
     } else if (o.shape === 'fireplace') {
       s += box(16, 20, 88, 80, o.surround || '#a8a29e', 5, 'stroke="#57534e" stroke-width="2"');
       s += box(18, 24, 84, 16, o.mantel || '#78716c', 4, 'stroke="#475569" stroke-width="1.6"');
