@@ -1416,17 +1416,26 @@
     if (!i18n.LOCALES[lang]) return;
     ui.lang = lang;
     saveUI();
-    i18n.set(lang);
+    /* setUiLang itself is one of several callers, and set() does not call
+       listeners when the language has not actually changed, so the rebuild is
+       done here as well. It is idempotent. */
     buildLangPicker();
     buildTabs();
+    i18n.set(lang);
     i18n.apply(doc);
     render();
   }
 
   i18n.onChange(function () {
-    /* Keeps the picker in sync if the language is changed from elsewhere. */
+    /* Every route to a new language lands here, not just the picker: a stored
+       preference, a deep link, or i18n.set() called by something else. The
+       header, the tabs and the cards all have to follow, so re-localise the
+       whole document and redraw — keeping only the <select> in sync left the
+       tagline and every tab reading in the previous language. */
     var select = $('#uiLang');
     if (select) select.value = i18n.current;
+    i18n.apply(doc);
+    render();
   });
 
   /* ================================================================== *

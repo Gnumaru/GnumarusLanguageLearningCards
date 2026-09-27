@@ -35,15 +35,15 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 1187 words, a hundred at a time. Search across every language,
+**Deck** — all 1816 words, a hundred at a time. Search across every language,
 filter by category or by one of nine parts of speech, hide what you have already
 mastered. Tap a card to flip it and read the word in every selected language,
 with a speaker button on each row that uses the voices already installed on your
 device.
 
 The deck is **paginated, 100 cards per page**, and that is the difference between
-a grid that stays quick and one that does not. Rendering 1187 cards up front means
-~35,000 DOM nodes, ~7 MB of heap and a full grid re-render on every keystroke;
+a grid that stays quick and one that does not. Rendering 1816 cards up front means
+~55,000 DOM nodes, ~11 MB of heap and a full grid re-render on every keystroke;
 one page of 100 is ~7,000 nodes, 2 MB, and 30 ms. The page size is a single
 constant, `DECK_PAGE_SIZE` in `app.js`.
 
@@ -94,40 +94,42 @@ you can move your progress between browsers or machines.
 languages appear on the cards, pronunciation, animations, and where your data
 lives.
 
-### What is in the 1187 words
+### What is in the 1816 words
 
 Nouns, adjectives and verbs were only the starting point. A language learner also
 needs function words, so the deck covers nine parts of speech:
 
 | Part of speech | Words | Examples |
 | --- | --- | --- |
-| Noun | 950 | *vaca*, *pontapé*, *violino* |
-| Adjective | 66 | *veloz*, *coredondo*, *silencioso* |
+| Noun | 1498 | *vaca*, *pontapé*, *violino* |
+| Adjective | 129 | *veloz*, *coredondo*, *áspero* |
 | Verb | 71 | *correr*, *lavar*, *esquecer* |
-| Adverb | 26 | *aqui*, *nunca*, *de repente* |
+| Adverb | 31 | *aqui*, *nunca*, *de repente* |
+| Preposition | 29 | *sob*, *entre*, *por baixo de* |
 | Pronoun | 26 | *eu*, *aquilo*, *deles* |
-| Preposition | 16 | *sob*, *entre*, *através de* |
 | Conjunction | 11 | *mas*, *porque*, *embora* |
 | Interjection | 11 | *olá*, *ai*, *parabéns* |
 | Numeral | 10 | *um* … *dez* |
 
-The 1187 words sit in 53 categories, gathered into eight captioned groups so the
-filter bar stays readable. Thirty-eight of the categories have words in them and
-fifteen are still empty, waiting to be filled:
+The 1816 words sit in 53 categories, gathered into eight captioned groups so the
+filter bar stays readable. **Every category has words in it** — there are no
+placeholder groups left:
 
-| Group | Filled | Words | Still empty |
-| --- | --- | --- | --- |
-| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 459 | — |
-| Work and study | technology, tools, office, school, communication, media | 212 | — |
-| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers | 196 | position, quantity |
-| Food | food, drinks, kitchen | 150 | — |
-| World | nature, places, transport, time | 71 | weather, city, travel, money |
-| Fun | colors, sports, music | 42 | shapes, sizes, textures, holidays, games |
-| Home | objects | 40 | house, furniture, garden |
-| Clothing | clothes | 17 | accessories |
+| Group | Categories | Words |
+| --- | --- | --- |
+| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 459 |
+| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers, position, quantity | 280 |
+| World | nature, places, transport, time, weather, city, travel, money | 250 |
+| Play | colors, sports, music, shapes, sizes, textures, holidays, games | 229 |
+| Work and study | technology, tools, office, school, communication, media | 212 |
+| Home | objects, house, furniture, garden | 174 |
+| Food | food, drinks, kitchen | 150 |
+| Wear | clothes, accessories | 62 |
 
-The original 500 hand-drawn words are the spine; the Food, People and Work groups
-were added afterwards in themed batches.
+The original 500 hand-drawn words are the spine. Four themed batches were added
+afterwards — food, people (12 categories), work and study, and finally the fifteen
+categories that were still empty, which is where shapes, sizes, textures,
+position and quantity came from.
 
 Concrete things are drawn as concrete things. Abstract words are drawn as **scenes
 and gestures**, because a picture of *entre* has to be an idea: a hand pointing at a
@@ -181,15 +183,18 @@ assets/js/
   data/themes-food.js          themed set: drinks + kitchen
   data/themes-people.js        themed set: animals … jobs (12 categories)
   data/themes-work.js          themed set: tools, office, school, media
+  data/themes-last.js          themed set: the fifteen categories that were
+                                still empty, accessories to quantity
   art.js                       the shape vocabulary, the shared families, the
                                hand-drawn core catalogue
   art-nouns.js                 hand-drawn illustrations for the core nouns
   art-things.js                ...for jobs, objects, sports, music, places
   art-grammar.js               ...for verbs, adjectives and the grammar
-  art-kinds.js                 the picture engine: 76 parameterised kinds
+  art-kinds.js                 the picture engine: 83 parameterised kinds
   art-specs-food.js            recipes, one line per themed word
   art-specs-people.js          recipes for the people group
   art-specs-work.js            recipes for the work and study group
+  art-specs-last.js            recipes for the fifteen new categories
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -204,7 +209,7 @@ Artwork is inline SVG built from a tiny shape vocabulary (`c`, `e`, `rc`, `p`,
 `ps`, `pl`, `ln`, `txt`), so the whole deck is a few hundred KB of text, sharp at
 any size, printable, and impossible to break with a missing file.
 
-Three things keep 1187 drawings consistent rather than merely present:
+Four things keep 1816 drawings consistent rather than merely present:
 
 * **Shared families.** Drink containers, garments, buildings, vehicles, balls,
   instruments, screens and weather are drawn once and parameterised by colour and
@@ -215,13 +220,22 @@ Three things keep 1187 drawings consistent rather than merely present:
   place covers twenty symptoms; one figure with a different hat and tool covers
   fifty-six jobs. One tool, one desk object, one screen, one schoolroom thing, one
   speech bubble and one printed page cover two hundred words of work and study
-  between them.
+  between them. The last batch works the same way: one accessory renderer, one
+  house-fixture renderer, one furniture renderer, one outdoor renderer that
+  covers a garden, the weather and a street, one journey renderer, one money
+  renderer and one diagram renderer carry six hundred and thirty-four words
+  across fifteen categories.
 * **Silhouette before colour.** A recolour does not make a card distinguishable —
   six white cups with steam are six of the same card. Fish are told apart by
   build (a sardine is a sliver, a tilapia is a disc) and tail, a white bird gets an
   outline so it is not a blob on a pale card, a man is broader than a woman, and a
   boy is shorter. Every distinct drawing in the deck is asserted to be unique, so
-  this cannot quietly regress.
+  this cannot quietly regress — and forty collisions were found and fixed this
+  way in the last batch alone. A trimmed hedge is flat on top and a thicket is all
+  spikes; a wall is striped with a skirting board, a floor is boards running away
+  from you and a ceiling has a light fitting; a metre is divided into ten, a yard
+  into three, and that is the only honest difference between a ruler and another
+  ruler. A recolour is never the answer.
 * **A draw-time safety net.** `LLC.art.get()` catches anything a drawing throws
   and falls back to deterministic generated geometry, so one bad card can never
   break a page — but it also records the failure in `LLC.art.failures()`, and the
@@ -252,40 +266,61 @@ isotonic:   d({ k: 'bottle', liquid: '#38bdf8', cap: '#0284c7', tall: 1.1 }),
 kind('bottle', function (o) { /* draws with o.liquid, o.cap, o.label, o.tall */ });
 ```
 
-Forty-nine drinks come out of a dozen kinds, four hundred and twenty-five words
-about people come out of seven, and they look like one set. A recipe naming a kind
-that does not exist falls back to generated geometry **and** is recorded in
-`LLC.art.specFailures()`, which the test suite asserts is empty — a typo in one line
-of a thousand is caught rather than shipping a card that quietly looks like nothing.
+Forty-nine drinks come out of a dozen kinds, four hundred and fifty-nine words
+about people come out of seven, six hundred and thirty-four words about the last
+fifteen categories come out of seven more, and they all look like one set. A recipe
+naming a kind that does not exist falls back to generated geometry **and** is
+recorded in `LLC.art.specFailures()`, which the test suite asserts is empty — a typo
+in one line of two thousand is caught rather than shipping a card that quietly looks
+like nothing. A recipe naming a *shape* its kind does not have is a level below that
+and needed its own check; see `shapes.js` above.
 
 The vocabulary is positional, and positional arguments are easy to get wrong in ways
-that render as nothing at all rather than as an error. Four lints in the test harness
+that render as nothing at all rather than as an error. Six lints in the test harness
 cover the mistakes that actually happened while building this:
 
 | Lint | Catches |
 | --- | --- |
-| `artlint.py` | a width passed where an attribute string belongs; a second `stroke-width` handed to a helper that already emits one |
-| `arity.py` | too many arguments for a helper; a bare number or an unbalanced quote in the attribute slot |
-| `pathcmd.py` | a computed path that never got its `M`, so the browser silently drops the shape |
-| `dupes.py` | a themed word that repeats an existing entry in all three languages |
-| `dropped.js` | a theme row that `add()` skipped, which is how five words went missing without a word |
+| `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter |
+| `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
+| `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
+| `shapes.js` | a recipe naming a `shape`, `mode` or `role` its kind does not have |
+| `validate.py` | every card re-parsed as XML: duplicate attributes, a numeric `fill`, a malformed point list |
+| `sheet.py` | nothing — it draws a contact sheet so a human can look at a category at once |
 
-`pathcmd.py` exists because the most expensive bug in the whole build was invisible:
+`shapes.js` is the newest of these and exists because of a hole one level below
+what anything else could see. A kind is a long `if / else` over `o.shape`. A recipe
+that asks for a name the kind never mentions falls through **every** branch and
+returns the ground shadow on its own. It is not the fallback, it does not throw, and
+two such cards still differ from each other, so every other check passes while the
+card shows a picture of nothing. `ferry` and `sleigh` were blank for exactly this
+reason: both asked for a `boat` shape that had never been written.
+
+`lint.py` exists because the most expensive bug in the whole build was invisible:
 twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and
 every renderer discards such a path without a word. Forty-eight cards were quietly
-missing a limb. `fixpath.py` repaired them, and the validator now re-checks the
-generated markup so it cannot come back.
+missing a limb. The validator now re-checks the generated markup so it cannot come
+back.
 
-`arity.py` grew the same way. It started by checking the argument *count* and
-finished by checking every slot that must hold a number, because `box(x, y, w, h,
-fill, 'stroke=…')` drops the radius into the fill and renders nothing — silently,
-in a card you have to open the app to see. The lesson is that in a positional DSL
-the errors do not throw, they draw, and a lint that only catches the loud ones is
-half a lint.
+The same lint grew to check every slot that must hold a number, because
+`box(x, y, w, h, fill, 'stroke=…')` drops the radius into the fill and renders
+nothing — silently, in a card you have to open the app to see. The lesson is that in
+a positional DSL the errors do not throw, they draw, and a lint that only catches
+the loud ones is half a lint.
 
-`dropped.js` exists because `LLC.data.add()` keeps the first definition of an id
+`drop.js` exists because `LLC.data.add()` keeps the first definition of an id
 and skips the rest without a word. It found a themed `fly` that the core deck
 already owned, and a `palm` that meant two different things inside a single file.
+The last batch lost 71 rows this way, and two suffixes that had been added to dodge
+a collision turned out to have created an exact duplicate in all three languages,
+which is not a new card at all.
+
+**Load order matters, and the harness now reads it from `index.html`.** Every
+themed data file and every recipe file registers under the same ids, and the last
+registration wins. A harness that loads them in alphabetical order therefore
+tests a *different deck* from the one the browser builds: `compass` and `compass2`
+were identical recipes, and the bug was invisible until the harness was ordered the
+way the page is. `deck.js` parses the `<script>` tags so both agree.
 
 ### The scheduling
 
@@ -334,9 +369,15 @@ whisk:  k({ k: 'utensil', shape: 'whisk', grip: '#334155' }),
 `LLC.data.add()` keeps the first definition of an id, so a themed file can
 overlap the core deck without clobbering it — and a word with no recipe still
 renders through the fallback. That rule cuts both ways, so always check what
-actually landed: `add()` **silently skips** an id that already exists, and four
-words in the first themed batch were dropped for exactly this reason without any
-error. `dupes.py` and the row-count check in `i18ncheck.js` are the safety net.
+actually landed: `add()` **silently skips** an id that already exists. Four words
+in the first themed batch and seventy-one in the last were dropped for exactly
+this reason without any error. `drop.js` and `check.js` are the safety net.
+
+Suffixing an id to dodge a collision is not a fix. `star2`, `mirror2`, `wallet2`
+and seventeen others were added that way in one pass and turned out to be exact
+duplicates of the core entry in all three languages — the same card twice, which
+teaches nothing. When a word already exists under a different id, either drop the
+row or make it a genuinely different word.
 
 **Add a picture kind** — one `kind('name', function (o) { … })` in
 `art-kinds.js`, then use it from any recipe. A kind draws into a 120×120 viewBox
@@ -354,21 +395,39 @@ The harness lives outside the repository, in `/tmp/opencode`, so the app itself
 stays dependency-free. From a `python3 -m http.server 8080` in the project root:
 
 ```sh
-node i18ncheck.js                          # labels resolve in all 3 languages
-node dropped.js                            # every theme row reached the deck
-python3 arity.py    ../…/assets/js/art*.js # numeric slots and argument counts
-python3 artlint.py  ../…/assets/js/art*.js # attribute-string mistakes
-python3 pathcmd.py  ../…/assets/js/art*.js # missing path commands
-python3 validate.py svgs-all.json          # XML + attribute sanity
-node test.js  http://127.0.0.1:8080/index.html   # 93 checks
-node edge.js  http://127.0.0.1:8080/index.html   # 32 checks
-node paging.js http://127.0.0.1:8080/index.html  # 62 checks
+python3 lint.py   ../…/assets/js/art*.js   # the shape vocabulary, positionally
+node      check.js                          # labels, drops, duplicates, artwork
+node      drop.js                           # every theme row reached the deck
+node      shapes.js                         # recipes name a shape their kind has
+node      snapshot.js                       # render every card to svgs-all.json
+python3   validate.py svgs-all.json         # XML, attributes, point lists
+python3   sheet.py                          # one contact sheet per category
+node      test.js                           # 46 checks, both origins
+node      edge.js                           # 24 checks, both origins
 ```
 
-All three browser suites also run against `file:///…/index.html`, because working
-from a file with no server is the point of the project. `sheet.py` builds a contact
-sheet from `svgs-all.json` for looking at a whole category at once — that is how
-the six-identical-fish problem was found, and it is faster than reading code.
+`test.js` and `edge.js` each run twice: once against `http://127.0.0.1:8080/` and
+once against `file:///…/index.html`, because working from a file with no server is
+the point of the project. Both drive real Chrome over the DevTools protocol and
+**disable the cache first** — without that, a second run tests the previous run's
+JavaScript and a fix reads as still broken.
+
+`sheet.py` builds a contact sheet from `svgs-all.json` for looking at a whole
+category at once. That is how the six-identical-fish problem was found, and it is
+also how the last batch was reviewed: the first draft had five garden tools all
+rendered as the same hammer, four kinds of fog as the same three white bars, and
+every room in the house drawn as the same television. None of those are duplicate
+markup, so no automated check could see them. Reading the sheet took a minute and
+found all three.
+
+Two small helpers are worth knowing about:
+
+* `deck.js` loads the deck in the order `index.html` loads it. The themed files
+  all register under the same ids, so a harness that sorts by filename tests a
+  different deck from the one the browser builds.
+* `recolour.py` holds the table that gave forty colliding words a real drawing
+  instead of a different colour. It is a record of *why* each one differs, which
+  is the part worth keeping.
 
 ---
 
