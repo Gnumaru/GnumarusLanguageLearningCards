@@ -295,7 +295,7 @@ harness cover the mistakes that actually happened while building this:
 | Lint | Catches |
 | --- | --- |
 | `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter; two branches on the same condition |
-| `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
+| `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a translation in the wrong script, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
 | `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
 | `shapes.js` | a recipe naming a shape its kind does not have, and a recipe that draws the kind's default |
 | `tables.js` | a field a kind's lookup table sets that the drawing never reads, and a table entry that draws exactly the fallback |
@@ -334,22 +334,41 @@ sequence of marks and their geometry. A pouf and a footstool both drew three
 stacked ellipses; four rooms in the house were the same room in four wall colours;
 thirteen accessories were the same box.
 
-It also scores near-misses by Jaccard over the mark sets, calibrated against pairs
-whose relationship is known: the ones that were fixed score 0.18–0.88, and the ones
-still identical score exactly 1.000. The count rises from 881 cards at exact
-equality to 1,143 at 0.70. Which line to draw is a judgement about what the deck is
-for, so the tool prints the curve rather than picking one.
+It also scores near-misses by Jaccard over the mark sets, and the line it draws
+is set at **0.85**. The distribution made the edge easy to find: 1.69k pairs sit
+at exactly 1.00 and the next bucket holds twelve, so "identical" is a mode with a
+clear edge and not a judgement call. The judgement was where to cut the tail, and
+sampling each band settled it. Above 0.85 every pair found was a real defect — a
+marmot drawn as a panda, three kinship words drawn as the same child, a citizen
+drawn as a cashier. Below 0.85 the population changes character and the mass is
+parametric families where sharing a curve *is* what the kind does. 0.85 is a line
+through a gradient, not a boundary between right and wrong: `manager` and `boss`
+are a real defect and sit at 0.77, under it.
 
-Its allowlist (`lib/skeleton-allow.js`) is a module rather than a data file, so the
-argument for each case sits next to the case. A colour card *is* a swatch of that
-colour, and a rhombus really is a diamond, so those are allowed. Anything else on
-that list would be an excuse, which is why there are only two entries.
+Its allowlist (`tools/lib/skeleton-allow.js`) is a module so the argument for each
+case sits next to the case, and it has **two** categories rather than the four it
+started with. A colour card *is* a swatch of that colour, and a rhombus really is
+a diamond. A third category — "the same object, distinguished by what it is used
+for" — was tried and **failed**: a passport is a booklet and a visa is a stamp in
+it, a departure is an event and a departures board is a display. Showing the same
+picture for *passport* and *visa* tells the learner something untrue. A fourth
+exists but is computed from the data rather than written out: two cards carrying
+the same Portuguese word cannot be told apart by a picture, because the learner's
+own language does not tell them apart. `recolour.js --excused` lists everything
+the allowlist drops, which is the check on the check.
 
-The honest number today is **298 groups, 881 cards**. The worst kinds are `diagram`
-(194), `outdoor` (115), `accessory` (75), `office` (47) and `money` (47). Most of it
-predates the last batch: the colours and the first fifty people are from the
-original 500. Fixing it means adding parameters to kinds the same way this batch
-did.
+**52 pairs of different words share an English base** and draw one picture —
+`thirsty`/`thirst`, `gale`/`gust`, `camel`/`hippo`, `dozen`/`dozens`. Not one is
+excusable: they are two words that were never told apart. They are reported as
+their own number rather than folded into the total.
+
+The honest number today is **292 groups, 1,013 cards** at the line, 875 of them at
+exact identity. The worst kinds are `diagram` (203), `outdoor` (122),
+`roleFigure` (92), `accessory` (75), `money` (51), `office` (47) and `journey`
+(42); by category, money (46), quantity (44), accessories (43), city (40), games
+(38) and weather (35). Most of it predates the last batch: the colours and the
+first fifty people are from the original 500. Fixing it means adding parameters to
+kinds the same way this batch did.
 
 `lint.py` exists because the most expensive bug in the whole build was invisible:
 twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and
@@ -476,8 +495,8 @@ node    tools/shapes.js                         # recipes name a shape their kin
 node    tools/tables.js                         # every field a table sets is read
 node    tools/snapshot.js                       # render every card to .out/cards.json
 python3 tools/validate.py                       # XML, attributes, point lists
-node    tools/recolour.js --thresholds          # the same picture in other colours
-node    tools/recolour.js --by kind             # ...grouped by kind, to work through
+node    tools/recolour.js                        # the same picture, at the triage line
+node    tools/recolour.js --by kind              # ...grouped by kind, to work through
 python3 tools/sheet.py                          # one contact sheet per category
 node    tools/test.js                           # 42 checks, both origins
 node    tools/edge.js                           # 24 checks, both origins

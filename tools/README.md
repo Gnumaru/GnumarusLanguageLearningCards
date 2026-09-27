@@ -56,8 +56,89 @@ continues.
 
 | | |
 | --- | --- |
-| `recolour.js` | Cards that are the same picture in different colours, and which kinds are responsible. |
+| `recolour.js` | Cards that are the same picture, and which kinds are responsible. |
 | `sheet.py` | One contact sheet per category, plus `--groups` for the eight largest. |
+
+## The triage line
+
+`recolour.js` is the work list, so the line it draws decides how much work there
+is. It is set at **similarity ≥ 0.85**, and the reasoning is in the file.
+
+The distribution made it easy to see where the edge was. 1.69k pairs sit at
+exactly 1.00 and the next bucket holds twelve, so "identical" is a mode with a
+clear edge and not a judgement call. The only judgement was where to cut the
+tail, and sampling each band settled it:
+
+* **above 0.85** every pair found was a real defect — a marmot drawn as a
+  panda, three kinship words drawn as the same child, a citizen drawn as a
+  cashier — with no exceptions left, because the exceptions were checked and are
+  either on the allowlist or were found to be wrong
+* **below 0.85** the population changes character: the mass is parametric
+  families where sharing a curve *is* what the kind does
+
+0.85 is a line through a gradient, not a boundary between right and wrong.
+`manager` and `boss` are a real defect and sit at 0.77, below it.
+
+```sh
+node tools/recolour.js                  # the work list at the line
+node tools/recolour.js --thresholds     # the count at seven strictnesses
+node tools/recolour.js --exact          # identity only, no similarity
+node tools/recolour.js --by kind        # the work list, grouped by kind
+node tools/recolour.js --by category
+node tools/recolour.js --list           # every group, worst first
+node tools/recolour.js --homographs     # pairs of different words, one drawing
+node tools/recolour.js --excused        # what the allowlist drops — audit this
+```
+
+**The number today is 292 groups, 1013 cards.** Worst kinds: `diagram` 203,
+`outdoor` 122, `roleFigure` 92, `accessory` 75, `money` 51, `office` 47,
+`journey` 42.
+
+## The allowlist
+
+An allowlist is the easiest thing in this file to abuse: every entry makes the
+number better without making the deck better. So each one has to answer **is the
+picture the word?** — and the answers live next to the cases, in
+`lib/skeleton-allow.js`.
+
+There are **two** categories, and finding that out was most of the work:
+
+1. **A colour card is a swatch of that colour.** 46 ids. The shapes are all the
+   same on purpose: what distinguishes *red* from *blue* is the red and the blue.
+2. **One shape, two names.** 4 ids. The languages disagree about which name is
+   the general one, so the words differ and the pictures should not.
+
+And a third that was tried and **failed**, which is the useful part:
+
+3. **"The same object, distinguished by what it is used for."** All three
+   candidates were wrong. A passport is a booklet and a visa is a stamp in it;
+   a departure is an event and a departures board is a display. A learner shown
+   the same picture for *passport* and *visa* has been told something untrue.
+   Near in meaning is not the same as the same thing.
+
+A fourth exists but is **computed from the data** rather than written out: two
+cards carrying the same Portuguese word. The app teaches Portuguese first, so
+that is the word a learner has to attach a meaning to, and when it is the same
+word there is nothing in their own language to tell the cards apart — the
+`rhombus`/`diamond` argument generalised from geometry to vocabulary. In
+practice it excuses only three whole groups today, so the rule is narrow even
+though 190 ids qualify.
+
+Two rules kept this honest:
+
+* **Per pair, not per card.** A synonym excuse covers two cards against *each
+  other* and says nothing about either against a third. Removing every synonym
+  card from consideration wholesale excused 30 groups the rule has no claim to.
+* **Auditable.** `recolour.js --excused` lists every group the allowlist drops.
+  It is the check on the check. Reading it is how I caught the synonym rule
+  excusing `marmot`/`panda` and `triangle`/`prism` — two cards each being a
+  synonym of something is not two cards being synonyms of each other.
+
+**52 pairs of different words share an English base** and draw one picture:
+`thirsty`/`thirst`, `gale`/`gust`, `camel`/`hippo`, `dozen`/`dozens`. Not one is
+excusable — they are two words that were never told apart. They are reported as
+their own number (`--homographs`) rather than folded into the total, and none of
+them is on any allowlist.
 
 ## The three ideas worth knowing
 
@@ -79,17 +160,8 @@ shape *is* a known one, so the branch list is satisfied.
 a card and keeps only the marks and where they are. Two cards with the same
 skeleton are the same picture in different colours — which a duplicate check
 comparing markup cannot see, because their markup differs. The similarity score
-over the mark sets extends it to the near-misses, and it is calibrated against
-pairs whose relationship is known:
-
-```sh
-node tools/recolour.js                 # identical skeletons
-node tools/recolour.js --thresholds    # the count at several strictnesses
-node tools/recolour.js --near=0.85     # related but confusable
-node tools/recolour.js --by kind       # the work list
-node tools/recolour.js --by category
-node tools/recolour.js --list          # every group, worst first
-```
+over the mark sets extends it to the near-misses. The line it draws is discussed
+above.
 
 ## Layout
 
@@ -101,9 +173,10 @@ lib/skeleton-allow.js   deliberate pairs, with the argument for each
 lib/browser.js          a real page over the DevTools protocol
 ```
 `lib/skeleton-allow.js` is a module rather than a data file so the argument for
-each allowed pair sits next to the pair. There are two arguments and two
-entries: a colour card *is* a swatch of that colour, and a rhombus really is a
-diamond. Anything else on that list would be an excuse.
+each allowed pair sits next to the pair — including the category that was tried
+and found to have no members, which is the part worth keeping. Two arguments and
+two entries: a colour card *is* a swatch of that colour, and a rhombus really is
+a diamond. Anything else on that list would be an excuse.
 
 ## Where things are not
 

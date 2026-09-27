@@ -32,10 +32,11 @@ step 'validate: re-parse the rendered markup'       python3 tools/validate.py
 # --- offline: drawing quality, reported not enforced -----------------------
 # These exit non-zero on purpose. The count is the work list, not a build
 # failure, so a red line here is information rather than a broken tree.
-printf '\n\033[1m== recolour: the same picture in other colours\033[0m\n'
-node tools/recolour.js --thresholds || true
-printf '\n\033[1m== recolour: the work list, by kind\033[0m\n'
+printf '\n\033[1m== recolour: the work list, at the triage line\033[0m\n'
+node tools/recolour.js || true
+printf '\n\033[1m== recolour: by kind, and the count at several strictnesses\033[0m\n'
 node tools/recolour.js --by kind || true
+node tools/recolour.js --thresholds || true
 printf '\n\033[1m== sheets: one page per category\033[0m\n'
 python3 tools/sheet.py || true
 

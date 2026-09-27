@@ -106,6 +106,18 @@ for (const w of D.words) {
 if (dupEntries.length) fail(dupEntries.length + ' duplicated entries: ' + dupEntries.join('; '));
 else ok('no duplicated entries' + (homographs.length ? ' (homographs kept: ' + homographs.join(', ') + ')' : ''));
 
+/* A translation in the wrong script. `dutyfree` was found carrying
+   "loja免税" in the Portuguese field — Chinese characters in a column where
+   every other one of the 2000 rows is Portuguese. Nothing throws, the card
+   renders, and the word is simply unreadable to the one reader the app is for. */
+const WRONG_SCRIPT = /[Ѐ-ӿ一-鿿぀-ヿ가-힯]/;
+const alien = D.words.filter((w) => D.languageIds.some((l) => WRONG_SCRIPT.test(w.w[l] || '')));
+if (alien.length) {
+  fail(alien.length + ' translations in the wrong script: ' +
+    alien.map((w) => w.id + ' (' + D.languageIds.filter((l) => WRONG_SCRIPT.test(w.w[l] || '')).join(',') +
+      ' = "' + D.languageIds.map((l) => w.w[l]).find((x) => WRONG_SCRIPT.test(x)) + '")').join('; '));
+} else ok('every translation is in its own script');
+
 /* `add()` keeps the first definition of an id and skips the rest without a word.
    It is the only failure that loses vocabulary silently, so it has its own
    script, which loads each theme file on its own to see the collisions the

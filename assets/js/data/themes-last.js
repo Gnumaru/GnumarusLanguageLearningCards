@@ -294,7 +294,7 @@
     ['guidebook',   'travel', 'noun', 'guia de viagem',  'guidebook',         'guía de viaje'],
     ['currency',    'travel', 'noun', 'moeda',           'currency',          'moneda'],
     ['customs',     'travel', 'noun', 'alfândega',       'customs',           'aduanas'],
-    ['dutyfree',    'travel', 'noun', 'loja免税',        'duty free',         'tienda libre de impuestos'],
+    ['dutyfree',    'travel', 'noun', 'loja duty free',  'duty free',         'tienda libre de impuestos'],
     ['stopover',    'travel', 'noun', 'parada',          'stopover',          'escala'],
     ['oneway',      'travel', 'noun', 'ida',             'one way',           'solo ida'],
     ['returnticket', 'travel', 'noun', 'bilhete de ida e volta', 'return ticket', 'billete de ida y vuelta'],
