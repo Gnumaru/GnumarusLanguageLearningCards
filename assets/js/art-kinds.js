@@ -5512,6 +5512,231 @@
         s += c(28 + (d % 5) * 16, 42 + Math.floor(d / 5) * 16, 6, o.fill || '#3b82f6');
       }
       if (o.more) s += ps('M78,76 h18 M90,68 v16', o.ink || '#94a3b8', 3);
+    } else if (o.mode === 'place') {
+      /* Where a thing is, said by where the dot is.
+         A grid of filled cells was the old answer and it was the wrong
+         question: it encodes *which cells*, not *above* or *beside*, and it made
+         `above` and `below` two fillings of the same twelve cells. The dot moves
+         and the box does not.
+
+         The second thing this needs is that these words are not all the same kind
+         of relation. `top` is the upper *part* of something, so the box is tall
+         and the dot sits on its edge. `above` is higher *than* something, so the
+         box is a single object and the dot is clear of it. `atop` is the one in
+         between — touching. Three words, and the only difference is where the dot
+         is relative to the outline.
+
+         `ref` picks the reference: a tall thing that has a top and a bottom, or
+         a single object to be above or below. */
+      s += c(60, 60, 40, o.tint || '#eef2ff');
+      var spot = o.spot || 'centre';
+      var ink = o.ink || '#dc2626';
+      var part = o.ref === 'tall';
+      var bw = part ? 44 : 30, bh = part ? 62 : 30;
+      var bx = o.boxX === undefined ? 60 : o.boxX, byy = o.boxY === undefined ? 60 : o.boxY;
+      var ox = bx - bw / 2, oy = byy - bh / 2;
+
+      if (spot === 'point') {
+        /* `at` is a point in space, not a point in a thing: there is nothing
+           to be at the middle of, so no box is drawn. */
+        s += c(60, 60, 22, 'none', 'stroke="#94a3b8" stroke-width="2.6"');
+        s += c(60, 60, 9, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'amidst') {
+        /* `amidst` is in the middle *of a group*, so the band has things on
+           both sides of it — which is what it has over `middle`. */
+        s += c(24, byy, 8, '#94a3b8') + c(38, byy, 8, '#94a3b8');
+        s += c(96, byy, 8, '#94a3b8') + c(82, byy, 8, '#94a3b8');
+        s += box(52, byy - 11, 16, 22, ink, 3, 'opacity=".28"');
+        s += c(60, byy, 7, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'here') {
+        /* `here` is this place, and a pin on a map is the one symbol the world
+           already uses for it. A dot with a box around it said nothing. */
+        s += p('M60,92 C60,92 34,60 34,44 C34,28 46,16 60,16 C74,16 86,28 86,44 C86,60 60,92 60,92 Z',
+          o.fill || '#4f46e5', 'stroke="' + (o.ink || '#312e81') + '" stroke-width="2"');
+        s += c(60, 42, 12, '#fdfdff');
+        s += c(60, 42, 6, o.fill || '#4f46e5');
+        return s;
+      }
+      if (spot === 'midship') {
+        /* `amidships` is not "amidst" with another preposition: in English it
+           is the middle of a *ship*. So it gets a hull, which is the one thing
+           the word is actually about. */
+        s += p('M18,64 L96,64 C96,80 82,90 58,90 C34,90 20,80 20,64 Z',
+          o.fill || '#334155', 'stroke="#0f172a" stroke-width="2"');
+        s += ps('M58,40 v22', '#64748b', 3);
+        s += pl('58,38 50,50 66,50', '#64748b');
+        s += ps('M18,64 h78', ink, 3, 'stroke-dasharray="5 4"');
+        s += c(58, 64, 8, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'against') {
+        /* `against` is touch, so two things and no gap. */
+        s += box(24, oy, 34, 34, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += box(64, oy, 34, 34, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += c(60, oy + 17, 7, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'barrier') {
+        /* `despite`: a thing, and a wall it is in spite of. */
+        s += box(24, oy, 34, 30, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += ps('M66,26 v68', '#dc2626', 6);
+        s += ps('M18,60 h84', ink, 3.4, 'stroke-dasharray="5 4"');
+        return s;
+      }
+      if (spot === 'cover' || spot === 'beneath') {
+        /* `over` and `underneath` put something *on* or *past* the thing, which
+           is what separates them from `above` and `under`, where only a dot
+           moves. */
+        s += box(28, oy + 6, 64, 26, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        if (spot === 'cover') {
+          s += box(28, oy - 14, 64, 12, ink, 3);
+          s += ps('M20,' + (oy - 8) + ' h80', ink, 3.4);
+        } else {
+          s += box(28, oy + 38, 64, 12, ink, 3);
+          s += ps('M20,' + (oy + 44) + ' h80', ink, 3.4);
+        }
+        return s;
+      }
+      if (spot === 'side') {
+        /* `side` is a face of the thing, so half the outline is shaded rather
+           than a dot put on it. */
+        s += box(ox, oy, bw, bh, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += box(ox, oy, bw / 2, bh, ink, 4, 'opacity=".3"');
+        s += ps('M' + (ox + bw / 2) + ',' + oy + ' v' + bh, ink, 2.6);
+        return s;
+      }
+      if (spot === 'between') {
+        /* `between` is not a position on its own — it needs two things to be
+           between, and the dot has to sit in the gap, not on either of them. */
+        s += box(18, oy, 30, 30, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += box(72, oy, 30, 30, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += c(60, oy + 15, 8, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'close' || spot === 'far') {
+        /* `near` and `far` are about the gap between two things, so both are
+           drawn and only the spacing changes. */
+        var gap = spot === 'close' ? 32 : 54;
+        s += box(60 - gap - 15, oy, 30, 30, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += box(60 + gap - 15, oy, 30, 30, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += ps('M' + (75 - gap) + ',' + (oy + 15) + ' h' + (gap * 2 - 30), '#64748b', 2,
+          'stroke-dasharray="3 3"');
+        return s;
+      }
+
+      if (spot !== 'behind' && spot !== 'front') {
+        s += box(ox, oy, bw, bh, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+      }
+      var dx = 0, dy = 0, on = false;
+      if (spot === 'top') { dy = -(bh / 2 + 7); on = true; }
+      else if (spot === 'bottom') { dy = bh / 2 + 7; on = true; }
+      else if (spot === 'ontop') { dy = -(bh / 2 + 7); on = true; }
+      else if (spot === 'under') { dy = bh / 2 + 7; on = true; }
+      else if (spot === 'above') dy = -(bh / 2 + 26);
+      else if (spot === 'below') dy = bh / 2 + 26;
+      else if (spot === 'left') { dx = -(bw / 2 + 7); on = true; }
+      else if (spot === 'right') { dx = bw / 2 + 7; on = true; }
+      else if (spot === 'edge') { dx = bw / 2 + 7; dy = -(bh / 2 - 12); on = true; }
+      else if (spot === 'corner') { dx = bw / 2 + 7; dy = -(bh / 2 + 7); on = true; }
+      else if (spot === 'beside') dx = bw / 2 + 26;
+      else if (spot === 'opposite') { dx = bw / 2 + 24; dy = bh / 2 + 22; }
+      else if (spot === 'outside') { dx = bw / 2 + 22; dy = -(bh / 2 + 22); }
+      else if (spot === 'behind') dy = -13;
+      else if (spot === 'front') dy = 13;
+      else if (spot === 'band') s += box(ox - 8, byy - 11, bw + 16, 22, ink, 3, 'opacity=".22"');
+
+      if (spot === 'centre') {
+        s += ps('M' + (ox - 8) + ',' + byy + ' h' + (bw + 16) + ' M' + bx + ',' + (oy - 8) + ' v' + (bh + 16),
+          '#64748b', 1.4, 'stroke-dasharray="3 3"');
+      }
+      if (on) s += ps('M' + (bx + dx * 0.72) + ',' + (byy + dy * 0.72) + ' L' + (bx + dx) + ',' + (byy + dy), ink, 2.2);
+      s += c(bx + dx, byy + dy, 8, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+      if (spot === 'behind') {
+        /* Depth is occlusion. A dashed outline behind and a solid one in front
+           is the only drawing of "behind" that reads without a caption; a
+           dashed line above the box could be anything. */
+        s += box(ox - 12, oy - 12, bw + 24, bh + 24, 'none', 4, 'stroke="#94a3b8" stroke-width="2"');
+        s += box(ox, oy, bw, bh, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
+        s += c(bx, byy, 8, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+      if (spot === 'front') {
+        s += box(ox - 12, oy - 12, bw + 24, bh + 24, o.fill || '#cbd5e1', 4, 'stroke="#64748b" stroke-width="2"');
+        s += box(ox + 9, oy + 9, bw - 18, bh - 18, 'none', 3,
+          'stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3"');
+        s += c(bx, byy, 8, ink, 'stroke="#fdfdff" stroke-width="1.6"');
+        return s;
+      }
+    } else if (o.mode === 'route') {
+      /* A direction, said by the path the arrow takes. `through` goes through
+         an opening, `across` goes over a surface, `along` follows one: the
+         difference between three words that all look like a line with a head. */
+      s += c(60, 60, 40, o.tint || '#eef2ff');
+      var route = o.route || 'across';
+      var ink = o.ink || '#3b82f6';
+      if (route === 'up' || route === 'down') {
+        var uy = route === 'up' ? 26 : 94;
+        s += ps('M60,94 L60,26', ink, 4);
+        var ty = route === 'up' ? 26 : 94;
+        s += pl('60,' + ty + ' ' + (60 - 8) + ',' + (ty + (route === 'up' ? 12 : -12)) + ' ' +
+          (60 + 8) + ',' + (ty + (route === 'up' ? 12 : -12)), ink);
+      } else if (route === 'along') {
+        s += ps('M22,84 C44,84 46,40 68,40 L98,40', ink, 4);
+        s += pl('98,40 84,33 84,47', ink);
+      } else if (route === 'through') {
+        s += box(34, 34, 52, 52, 'none', 6, 'stroke="#94a3b8" stroke-width="7"');
+        s += ps('M14,60 L106,60', ink, 4);
+        s += pl('106,60 92,53 92,67', ink);
+      } else if (route === 'beyond') {
+        s += ps('M16,60 L100,60', ink, 4);
+        s += pl('100,60 86,53 86,67', ink);
+        s += ps('M56,32 v56', '#dc2626', 4);
+        s += c(72, 60, 7, o.fill || '#dc2626');
+      } else if (route === 'towards') {
+        /* `towards` is motion aimed at a thing. */
+        s += ps('M22,60 L70,60', ink, 4);
+        s += pl('80,60 66,53 66,67', ink);
+        s += c(90, 60, 9, o.fill || '#dc2626');
+      } else if (route === 'next') {
+        /* `next` is two things in a row and the step from the first to the
+           second — not an arrow at a distant target. */
+        s += box(20, 44, 28, 28, o.fill || '#94a3b8', 4, 'stroke="#64748b" stroke-width="1.8"');
+        s += box(72, 44, 28, 28, 'none', 4, 'stroke="#94a3b8" stroke-width="2"');
+        s += ps('M52,58 L66,58', ink, 3.4);
+        s += pl('72,58 62,52 62,64', ink);
+      } else if (route === 'start') {
+        /* `beginning` is the start of a run, marked at one end. */
+        s += ps('M18,74 L102,74', '#94a3b8', 4);
+        s += c(18, 74, 8, o.fill || '#dc2626', 'stroke="#fdfdff" stroke-width="1.6"');
+        s += pl('18,58 10,70 26,70', ink);
+        s += ps('M34,66 h56', ink, 2.4, 'stroke-dasharray="5 4"');
+      } else if (route === 'end') {
+        /* `end` is the far end of a run reached, not a barrier passed. */
+        s += ps('M18,60 H100', '#94a3b8', 4);
+        s += ps('M18,60 L74,60', ink, 4);
+        s += pl('84,60 70,53 70,67', ink);
+        s += ps('M100,40 v40', ink, 5);
+        s += c(84, 60, 6, o.fill || '#dc2626');
+      } else if (route === 'whole') {
+        /* `throughout` is the whole length, marked at both ends. */
+        s += ps('M20,60 H100', ink, 4);
+        s += c(20, 60, 7, o.fill || '#dc2626', 'stroke="#fdfdff" stroke-width="1.6"');
+        s += c(100, 60, 7, o.fill || '#dc2626', 'stroke="#fdfdff" stroke-width="1.6"');
+        s += box(44, 42, 32, 36, 'none', 3, 'stroke="#94a3b8" stroke-width="2"');
+      } else if (route === 'level') {
+        s += box(20, 74, 34, 16, o.fill || '#94a3b8', 3, 'stroke="#64748b" stroke-width="1.6"');
+        s += box(66, 74, 34, 16, o.fill || '#94a3b8', 3, 'stroke="#64748b" stroke-width="1.6"');
+        s += ps('M14,64 h92', ink, 3, 'stroke-dasharray="5 4"');
+        s += c(37, 58, 4, ink) + c(83, 58, 4, ink);
+      } else {
+        s += box(20, 50, 80, 20, o.fill || '#cbd5e1', 3, 'stroke="#94a3b8" stroke-width="1.6"');
+        s += ps('M14,44 L106,44', ink, 4);
+        s += pl('106,44 92,37 92,51', ink);
+      }
     } else if (o.mode === 'count') {
       s += c(60, 60, 40, o.tint || '#eef2ff');
       s += box(24, 32, 72, 56, 'none', 6, 'stroke="#cbd5e1" stroke-width="2"');

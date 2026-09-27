@@ -362,13 +362,13 @@ the allowlist drops, which is the check on the check.
 excusable: they are two words that were never told apart. They are reported as
 their own number rather than folded into the total.
 
-The honest number today is **292 groups, 1,013 cards** at the line, 875 of them at
-exact identity. The worst kinds are `diagram` (203), `outdoor` (122),
-`roleFigure` (92), `accessory` (75), `money` (51), `office` (47) and `journey`
-(42); by category, money (46), quantity (44), accessories (43), city (40), games
-(38) and weather (35). Most of it predates the last batch: the colours and the
-first fifty people are from the original 500. Fixing it means adding parameters to
-kinds the same way this batch did.
+The honest number today is **290 groups, 975 cards** at the line, 869 of them at
+exact identity. The worst kinds are `diagram` (165), `outdoor` (122),
+`roleFigure` (92), `accessory` (75), `money` (51), `office` (47), `journey` (42),
+`message` (32) and `media` (32). Most of it predates the last batch: the colours
+and the first fifty people are from the original 500. Fixing it means giving
+words their own templates the way `diagram` got `place` and `route` — see
+`tools/README.md` for the worked example.
 
 `lint.py` exists because the most expensive bug in the whole build was invisible:
 twenty-nine paths were written `d="44,72 C40,86..."` with no command letter, and

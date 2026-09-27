@@ -172,7 +172,7 @@
 
     /* prepositions */
     besides:    r('prepositions', { k: 'diagram', mode: 'compare', count: 2, wide2: 1, fill: '#4f46e5' }),
-    despite:    r('prepositions', { k: 'diagram', mode: 'shape', shape: 'column', fill: '#6d28d9' }),
+    despite:    r('prepositions', { k: 'diagram', mode: 'place', spot: 'barrier', fill: '#94a3b8', ink: '#334155' }),
     unlike:     r('prepositions', { k: 'diagram', mode: 'compare', count: 2, fill: '#7c3aed' }),
 
     /* numbers */

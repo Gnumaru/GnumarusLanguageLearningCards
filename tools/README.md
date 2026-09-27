@@ -90,9 +90,34 @@ node tools/recolour.js --homographs     # pairs of different words, one drawing
 node tools/recolour.js --excused        # what the allowlist drops — audit this
 ```
 
-**The number today is 292 groups, 1013 cards.** Worst kinds: `diagram` 203,
+**The number today is 290 groups, 975 cards.** Worst kinds: `diagram` 165,
 `outdoor` 122, `roleFigure` 92, `accessory` 75, `money` 51, `office` 47,
-`journey` 42.
+`journey` 42, `message` 32, `media` 32, `tool` 29.
+
+### Worked example: the position words
+
+The first kind attacked was `diagram`, and inside it the 36 position words. They
+were drawn as a grid of twelve cells with some of them filled, which encodes
+*which cells* rather than *above* — so `above` and `below` were two fillings of
+the same twelve and 24 words were one group.
+
+Two new modes in the `diagram` kind fixed all 36 with no parameter collisions:
+
+* `place` — a dot at a named spot relative to a box
+* `route` — an arrow taking a named path
+
+The part that was not obvious is that the words are not all the same kind of
+relation. `top` is the upper **part** of a thing, so the reference is tall and
+the dot sits on its edge; `above` is higher **than** a thing, so the reference is
+a single object and the dot is clear of it; `atop` is the one in between —
+touching. First attempt gave all three the same spot and changed nothing.
+`ref: 'tall'` is the parameter that separates them.
+
+`amidships` is the one worth reading: it collided with `amidst` because both mean
+"in the middle", but in English *amidships* is the middle of a **ship**, so it
+got a hull. Reading the word properly beat inventing a difference.
+
+36 words, 9 groups, 38 cards off the total.
 
 ## The allowlist
 
