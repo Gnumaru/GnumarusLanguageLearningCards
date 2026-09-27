@@ -35,15 +35,15 @@ There is nothing to compile, install or configure.
 
 ## What it does
 
-**Deck** — all 1816 words, a hundred at a time. Search across every language,
+**Deck** — all 2000 words, a hundred at a time. Search across every language,
 filter by category or by one of nine parts of speech, hide what you have already
 mastered. Tap a card to flip it and read the word in every selected language,
 with a speaker button on each row that uses the voices already installed on your
 device.
 
 The deck is **paginated, 100 cards per page**, and that is the difference between
-a grid that stays quick and one that does not. Rendering 1816 cards up front means
-~55,000 DOM nodes, ~11 MB of heap and a full grid re-render on every keystroke;
+a grid that stays quick and one that does not. Rendering 2000 cards up front means
+~60,000 DOM nodes, ~12 MB of heap and a full grid re-render on every keystroke;
 one page of 100 is ~7,000 nodes, 2 MB, and 30 ms. The page size is a single
 constant, `DECK_PAGE_SIZE` in `app.js`.
 
@@ -94,37 +94,37 @@ you can move your progress between browsers or machines.
 languages appear on the cards, pronunciation, animations, and where your data
 lives.
 
-### What is in the 1816 words
+### What is in the 2000 words
 
 Nouns, adjectives and verbs were only the starting point. A language learner also
 needs function words, so the deck covers nine parts of speech:
 
 | Part of speech | Words | Examples |
 | --- | --- | --- |
-| Noun | 1498 | *vaca*, *pontapé*, *violino* |
-| Adjective | 129 | *veloz*, *coredondo*, *áspero* |
-| Verb | 71 | *correr*, *lavar*, *esquecer* |
-| Adverb | 31 | *aqui*, *nunca*, *de repente* |
-| Preposition | 29 | *sob*, *entre*, *por baixo de* |
+| Noun | 1654 | *vaca*, *pontapé*, *violino* |
+| Adjective | 139 | *veloz*, *coredondo*, *áspero* |
+| Verb | 77 | *correr*, *lavar*, *esquecer* |
+| Adverb | 35 | *aqui*, *nunca*, *de repente* |
+| Preposition | 32 | *sob*, *entre*, *por baixo de* |
 | Pronoun | 26 | *eu*, *aquilo*, *deles* |
-| Conjunction | 11 | *mas*, *porque*, *embora* |
-| Interjection | 11 | *olá*, *ai*, *parabéns* |
-| Numeral | 10 | *um* … *dez* |
+| Conjunction | 12 | *mas*, *porque*, *embora* |
+| Interjection | 12 | *olá*, *ai*, *parabéns* |
+| Numeral | 13 | *um* … *vinte* |
 
-The 1816 words sit in 53 categories, gathered into eight captioned groups so the
+The 2000 words sit in 53 categories, gathered into eight captioned groups so the
 filter bar stays readable. **Every category has words in it** — there are no
 placeholder groups left:
 
 | Group | Categories | Words |
 | --- | --- | --- |
-| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 459 |
-| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers, position, quantity | 280 |
-| World | nature, places, transport, time, weather, city, travel, money | 250 |
-| Play | colors, sports, music, shapes, sizes, textures, holidays, games | 229 |
-| Work and study | technology, tools, office, school, communication, media | 212 |
-| Home | objects, house, furniture, garden | 174 |
-| Food | food, drinks, kitchen | 150 |
-| Wear | clothes, accessories | 62 |
+| People | animals, birds, insects, sea, plants, body, face, health, feelings, people, family, jobs | 514 |
+| Words | verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections, numbers, position, quantity | 303 |
+| World | nature, places, transport, time, weather, city, travel, money | 283 |
+| Play | colors, sports, music, shapes, sizes, textures, holidays, games | 245 |
+| Work and study | technology, tools, office, school, communication, media | 229 |
+| Home | objects, house, furniture, garden | 190 |
+| Food | food, drinks, kitchen | 165 |
+| Wear | clothes, accessories | 71 |
 
 The original 500 hand-drawn words are the spine. Four themed batches were added
 afterwards — food, people (12 categories), work and study, and finally the fifteen
@@ -185,6 +185,8 @@ assets/js/
   data/themes-work.js          themed set: tools, office, school, media
   data/themes-last.js          themed set: the fifteen categories that were
                                 still empty, accessories to quantity
+  data/themes-more.js          top-up batch: 178 words spread over 46 of the
+                                53 categories, all of them already in the deck
   art.js                       the shape vocabulary, the shared families, the
                                hand-drawn core catalogue
   art-nouns.js                 hand-drawn illustrations for the core nouns
@@ -195,6 +197,7 @@ assets/js/
   art-specs-people.js          recipes for the people group
   art-specs-work.js            recipes for the work and study group
   art-specs-last.js            recipes for the fifteen new categories
+  art-specs-more.js            recipes for the top-up batch
   srs.js                       Leitner-box scheduling and progress bookkeeping
   app.js                       routing and the five views
 ```
@@ -209,7 +212,7 @@ Artwork is inline SVG built from a tiny shape vocabulary (`c`, `e`, `rc`, `p`,
 `ps`, `pl`, `ln`, `txt`), so the whole deck is a few hundred KB of text, sharp at
 any size, printable, and impossible to break with a missing file.
 
-Four things keep 1816 drawings consistent rather than merely present:
+Four things keep 2000 drawings consistent rather than merely present:
 
 * **Shared families.** Drink containers, garments, buildings, vehicles, balls,
   instruments, screens and weather are drawn once and parameterised by colour and
@@ -294,10 +297,21 @@ cover the mistakes that actually happened while building this:
 | `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter |
 | `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
 | `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
-| `shapes.js` | a recipe naming a `shape`, `mode` or `role` its kind does not have |
+| `shapes.js` | a recipe naming a shape its kind does not have, and a recipe that draws the kind's default |
 | `skeleton.js` | two cards that are the same drawing in different colours |
 | `validate.py` | every card re-parsed as XML: duplicate attributes, a numeric `fill`, a malformed point list |
 | `sheet.py` | nothing — it draws a contact sheet so a human can look at a category at once |
+
+`shapes.js` has a second half that matters more than the first. A branch list
+only covers kinds that branch on a name; a kind that looks its parameter up in a
+table, or in a chain of `if`s, returns the same default for every name it does
+not recognise, and a branch list sees nothing wrong. So the check also renders
+each recipe with a deliberately impossible parameter and compares: a drawing
+identical to the fallback *is* the fallback. Every one of the 178 new recipes was
+written blind and named a `kind:` or `mark:` no kind reads — `beast` is
+combinatorial (coat, legs, tail, pattern, ear, face) and `roleFigure` reads a
+fixed table — so a third of them drew the same default picture as their
+neighbours. None of it threw, and all of it passed every other check.
 
 `skeleton.js` is the one that found the most. Every other check compares markup,
 so it catches two cards that are byte-for-byte identical and says nothing about
