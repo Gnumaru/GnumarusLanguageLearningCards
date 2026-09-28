@@ -39,7 +39,7 @@ browser on that port is reused rather than restarted.
 | | |
 | --- | --- |
 | `lint.py` | The positional shape vocabulary: argument counts, a quoted string where a number belongs, a bare number or unbalanced quote in the attribute slot, a computed path with no moveto, a polygon point list carrying a command letter, an attribute the helper already emits. |
-| `check.js` | The gate. Word count pinned, no empty category, unique ids, every label in all three languages, no blank translation, no two words the same entry in all three, every word draws, nothing on the generated fallback, no two words share a drawing. Delegates the drop check. |
+| `check.js` | The gate. Word count pinned, no empty category, unique ids, every label in all three languages, no blank translation, no translation in the wrong script, no two words the same entry in all three, a recipe for an id the deck does not have, every word draws, nothing on the generated fallback, no two words share a drawing. Delegates the drop check. |
 | `drop.js` | Whether a theme file's rows actually reached the deck. |
 | `shapes.js` | Whether a recipe asks for something its kind draws — and whether the kind read the parameter at all. |
 | `tables.js` | The layer below the recipe. A kind that looks its answer up in a table (`ROLE`, `SCREENGLYPH`) draws nothing itself, so a correct recipe can still come out wrong because a field *in the table* is dead. Checks that every field a table sets is read, and that no entry draws exactly the fallback. |
@@ -155,7 +155,30 @@ worse than no drawing. Deleting it turned up something bigger: **55 recipes belo
 to ids that are not words.** Every check walks the *words*, so a recipe nobody
 will ever see is invisible to all of them. The pattern is a rename — a word needed
 a distinct id to stop colliding with the core deck, so `level` became `level2` and
-the recipe written for `level` was left behind. `check.js` now names them.
+the recipe written for `level` was left behind. `check.js` now fails on it.
+
+Finding them took two sweeps, not one. The obvious sweep looks for `X2` beside
+`X`, and it found 22. The other 33 needed the second kind of match: the word's id
+was not a variant of the recipe's at all. `banktransfer` is the word
+`transfer2` (bank transfer / transferência), `downpour` is `shower2`,
+`frostwarning` is `frost2`, `lightsnow` is `sleet2`, `voucher` is `discount2`.
+Matching on the *English* the id carries found those. One dead recipe, `geometry`,
+had no word at all — and it was a finished drawing, so it is the one deletion that
+might be worth undoing if a word slot is ever spent on geometry.
+
+**The sweep was worth more than the deletion.** A dead recipe sitting next to a
+live one is a free second opinion, and two live cards turned out to be plainly
+wrong only because of it:
+
+* `gate` (portão) was drawn as an **envelope** — `office`/`letter`. The dead
+  `gatepost` next to it was a wooden post.
+* `scale2` (balança) was drawn as a **cash till** — `money`/`till`.
+* `headphones2` (auscultadores) is a speaker with sound waves.
+
+None of them is a near-duplicate, so `recolour.js` cannot see them and no
+similarity measure would: the picture is simply of the wrong thing. Fixing them
+means new branches (`household` has no gate, `office` has no balance), which is
+its own batch.
 
 ## The allowlist
 

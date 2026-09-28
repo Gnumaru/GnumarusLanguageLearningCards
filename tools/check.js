@@ -156,20 +156,23 @@ for (const w of D.words) {
 const specFailures = A.specFailures();
 const artFailures = A.failures();
 
-/* A recipe for a word the deck does not have. Reported rather than failed,
-   because there are a batch of them and the fix is a separate job — but it is
-   the largest piece of dead code in the project and nothing else sees it. Every
-   other check here walks the *words*, so a recipe nobody will ever look at is
-   invisible to all of them.
-   The pattern is a rename: a word needed a distinct id to stop colliding with
-   the core deck, so it became `level2` and `enormous2`, and the recipe written
-   for `level` and `enormous` was left behind drawing nothing. */
+/* A recipe for a word the deck does not have. Every other check here walks the
+   *words*, so a recipe nobody will ever look at is invisible to all of them.
+
+   There were 55. The pattern was a rename: a word needed a distinct id to stop
+   colliding with the core deck, so `level` became `level2` and `enormous2` took
+   the place of `enormous`, and the recipe written for the old id was left behind
+   drawing nothing. Some were worse than dead — `gatepost` drew a gate post
+   while the live `gate` card drew an envelope, and `scale2` (balança) was drawn
+   as a cash till. Both were only visible because a dead recipe was sitting next
+   to them with a better drawing in it.
+
+   A failure, not a note, because it is now zero and the whole point is that it
+   stays zero. */
 const wordIds = new Set(D.words.map((w) => w.id));
 const deadRecipes = Object.keys(A.recipes()).filter((id) => !wordIds.has(id));
-if (deadRecipes.length) {
-  console.log('  !  ' + deadRecipes.length + ' recipes for ids the deck does not have (dead): ' +
-    deadRecipes.join(' '));
-} else ok('every recipe belongs to a word');
+if (deadRecipes.length) fail(deadRecipes.length + ' recipes for ids the deck does not have: ' + deadRecipes.join(' '));
+else ok('every recipe belongs to a word');
 
 if (thrown.length) fail(thrown.length + ' cards threw while drawing: ' + thrown.slice(0, 6).join(' '));
 else ok('no card threw while drawing');
