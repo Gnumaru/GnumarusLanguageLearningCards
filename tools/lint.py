@@ -192,7 +192,48 @@ def check(path):
                             % (path, at(m.start()), pts[:40]))
 
     problems += shadowed_branches(src, path, at)
+    problems += pinned_points(src, path)
 
+    return problems
+
+
+# A table entry that draws a shape from a list of numbers typed out by hand, at a
+# fixed spot, instead of from the centre it was handed.
+HARDCODED_POINTS = re.compile(r"""return pl\('[\d., ]+'""")
+def pinned_points(src, path):
+    """A shape table entry that ignores the centre it was given.
+
+    Four of them did. `SHAPE.star` was a hand-written point list that was a
+    **lightning bolt** and ignored x and y, so every star in the deck was the same
+    bolt in the same place; `BADGE.hourglass` was a five-point list with two
+    vertices repeated, which is not an hourglass.
+
+    Nothing else could have caught it. The point list was syntactically valid —
+    an even number of numeric coordinates — so `validate.py` passed it, and it
+    was the only shape in the deck, so no duplicate check fired. A polygon being
+    *well formed* is not the same as being the *right shape*, and the gap between
+    those two is where this lived.
+    """
+    problems = []
+    for table in re.finditer(r'^  var ([A-Z][A-Z0-9_]*) = \{', src, re.M):
+        name = table.group(1)
+        end = src.find('\n  };', table.end())
+        if end == -1:
+            continue
+        body = src[table.end():end]
+        for entry in re.split(r'^    (?=\w+: function)', body, flags=re.M)[1:]:
+            head = entry.split('\n')[0]
+            m = re.match(r'(\w+): function \(([^)]*)\)', head)
+            if not m:
+                continue
+            coords = [p.strip() for p in m.group(2).split(',') if p.strip() in ('x', 'y')]
+            if not coords:
+                continue
+            body_text = entry[len(head):]
+            if HARDCODED_POINTS.search(body_text):
+                line = src.count('\n', 0, table.end() + body.find(entry)) + 1
+                problems.append('%s:%d  %s.%s draws a fixed point list and ignores %s'
+                                % (path, line, name, m.group(1), ' and '.join(coords)))
     return problems
 
 

@@ -305,7 +305,7 @@
     shears2:     r('garden', { k: 'outdoor', what: 'garden', hedge: '#22c55e', tool: 'spade' }),
     board2:      r('games', { k: 'diagram', mode: 'grid', fill: '#92400e', filled: [0, 3, 6, 9] }),
     kite2:       r('games', { k: 'outdoor', what: 'weather', wind: 'gust', sky: '#e0f2fe' }),
-    bat2:        r('games', { k: 'tool', shape: 'mallet', grip: '#78350f' }),
+    bat2:        r('games', { k: 'tool', shape: 'club', body: '#e7d3bb', grip: '#78350f' }),
     counter2:    r('games', { k: 'media', shape: 'channel', num: 9, panels: 2 })
   });
 })(window);

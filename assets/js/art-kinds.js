@@ -830,6 +830,19 @@
     else if (o.tail === 'thin') s += ps('M24,62 C10,58 8,72 16,78', coat, 4);
     else if (o.tail === 'curl') s += ps('M24,62 C12,60 10,46 20,44', coat, 4.4);
     else if (o.tail === 'tuft') s += ps('M24,62 C12,58 10,44 18,42', coat, 4.4);
+    /* A wing, where there is one. The kind had no way to draw a flying animal,
+       so a bat came out as a four-legged one: a mammal with wings is not a
+       mammal, and the silhouette is the word. Drawn before the body so it looks
+       attached at the shoulder, and with ribs, because a membrane is what
+       tells a wing from a wing-shaped blob. */
+    if (o.wing) {
+      s += p('M76,58 C50,30 26,20 14,26 C18,44 28,58 44,66 C56,69 68,64 76,58 Z',
+        o.wing || '#6b4a7a', 'opacity=".92"');
+      s += ps('M76,58 C50,32 28,24 16,27 M76,58 C52,46 36,46 26,49 M76,58 C60,60 50,63 44,66',
+        o.rib || '#3f2a1a', 2, 'opacity=".65"');
+      s += p('M74,64 C54,74 32,80 20,86 C36,92 58,90 74,72 Z',
+        o.wing || '#6b4a7a', 'opacity=".7"');
+    }
     /* body */
     s += e(60, 68, 40, 22, coat);
     if (o.pattern === 'spots') {
@@ -1722,7 +1735,9 @@
       return c(x - 5, y - 3, 6, '#e0457f') + c(x + 5, y - 3, 6, '#e0457f') + c(x, y + 5, 6, '#e0457f');
     },
     bolt: function (x, y) {
-      return pl('3,10,7,1,1,1,3,10,7,1,1,1', '#f59e0b');
+      return pl((x - 5) + ',' + (y + 10) + ' ' + (x + 3) + ',' + (y - 10) + ' ' + (x - 1) + ',' +
+        (y - 1) + ' ' + (x + 5) + ',' + (y + 1) + ' ' + (x - 5) + ',' + (y + 10) + ' ' +
+        (x - 1) + ',' + (y - 1), '#f59e0b');
     },
     drop: function (x, y) {
       return p('M' + x + ',' + (y - 10) + ' C' + (x + 8) + ',' + (y - 1) + ' ' + (x + 7) + ',' + (y + 8) + ' ' + x + ',' + (y + 8) +
@@ -1733,7 +1748,13 @@
         ps('M' + x + ',' + (y - 5) + ' V' + y + ' h4', '#334155', 2.4);
     },
     star: function (x, y) {
-      return pl('10,3,3,10,2,5,3,6,10,6,6,10,5,3,10,2,3,3', '#fbbf24');
+      var d = '';
+      for (var k = 0; k < 10; k++) {
+        var a = (k * Math.PI) / 5 - Math.PI / 2;
+        var rr = k % 2 ? 4.4 : 10;
+        d += (k ? ' ' : '') + (x + Math.cos(a) * rr).toFixed(1) + ',' + (y + Math.sin(a) * rr).toFixed(1);
+      }
+      return pl(d, '#fbbf24');
     },
     eye: function (x, y) {
       return p('M' + (x - 10) + ',' + y + ' q10,-9 20,0 q-10,9 -20,0 Z', '#0ea5e9') + c(x, y, 3, '#1f2937');
@@ -1770,7 +1791,11 @@
         box(x - 1, y - 10, 3, 9, '#fbbf24', 1.4) + box(x + 4, y - 8, 3, 7, '#fbbf24', 1.4);
     },
     hourglass: function (x, y) {
-      return pl('8,9,8,9,2,8,9,8,9,2', '#f59e0b');
+      /* Seven points: the two flat ends and the waist between them. The list
+         this replaces had five and repeated two of them, so the shape was a
+         pentagon with a duplicated vertex. */
+      return pl((x - 9) + ',' + (y - 9) + ' ' + (x + 9) + ',' + (y - 9) + ' ' + x + ',' + y +
+        ' ' + (x + 9) + ',' + (y + 9) + ' ' + (x - 9) + ',' + (y + 9) + ' ' + x + ',' + y, '#f59e0b');
     },
     target: function (x, y) {
       return c(x, y, 9, 'none', 'stroke="#dc2626" stroke-width="2.4"') +
@@ -2690,6 +2715,26 @@
     } else if (o.shape === 'ruler') {
       s += box(14, 52, 92, 18, o.body || '#fbbf24', 2, 'stroke="#b45309" stroke-width="1.6"');
       for (var rt = 0; rt < 10; rt++) s += ps('M' + (20 + rt * 9) + ',52 v6', '#92400e', 1.4);
+    } else if (o.shape === 'balance') {
+      /* A weighing scale: the beam and two pans. The word was drawn as a cash
+         till, which is the other thing in Portuguese that weighs and takes
+         money. A beam balance is unmistakable and a till is not: the pans hang,
+         and the thing being weighed sits in one of them. */
+      var beam = o.tilt === undefined ? -7 : o.tilt;
+      var panL = 60 + beam, panR = 60 - beam;
+      s += box(54, 40, 12, 54, o.body || '#475569', 3, 'stroke="#1e293b" stroke-width="2"');
+      s += box(38, 94, 44, 8, o.body || '#475569', 3, 'stroke="#1e293b" stroke-width="2"');
+      s += ps('M' + (60 - 34) + ',' + (44 + beam) + ' L' + (60 + 34) + ',' + (44 - beam),
+        o.rod || '#94a3b8', 4);
+      s += c(60, 40, 5, '#e2e8f0', 'stroke="#1e293b" stroke-width="1.6"');
+      s += ps('M' + panL + ',' + (48 + beam) + ' v10 M' + panR + ',' + (48 - beam) + ' v10',
+        o.rod || '#94a3b8', 1.8);
+      s += p('M' + (panL - 16) + ',' + (60 + beam) + ' q16,14 32,0 Z', o.pan || '#cbd5e1',
+        'stroke="#64748b" stroke-width="1.8"');
+      s += p('M' + (panR - 16) + ',' + (60 - beam) + ' q16,14 32,0 Z', o.pan || '#cbd5e1',
+        'stroke="#64748b" stroke-width="1.8"');
+      /* what is being weighed, on the heavier side */
+      s += c(panR, 56 - beam, 8, o.load || '#f59e0b', 'stroke="#b45309" stroke-width="1.4"');
     } else if (o.shape === 'shears') {
       s += ps('M34,30 L74,86', metal, 6);
       s += ps('M86,30 L46,86', metal, 6);
@@ -2805,6 +2850,14 @@
       s += rc(54, 16, 12, 30, wood, 4, 'stroke="#6b4423" stroke-width="1.6"');
       s += p('M46,46 L74,46 L78,96 C78,102 42,102 42,96 Z', metal, 'stroke="#64748b" stroke-width="2"');
       s += ps('M60,50 v46', '#cbd5e1', 2, 'opacity=".7"');
+    } else if (o.shape === 'club') {
+      /* A bat: thick at the barrel and thin at the grip, with a knob at the
+         end. Two strokes of different widths is what makes it a bat — one
+         stroke of one width is a stick. */
+      s += ps('M30,98 L48,76', o.grip || '#8a5a33', 5);
+      s += c(27, 100, 5.5, o.grip || '#8a5a33');
+      s += ps('M46,78 L88,18', o.body || '#e7d3bb', 14);
+      s += ps('M46,78 L56,64', o.body || '#e7d3bb', 10);
     } else if (o.shape === 'crowbar') {
       s += '<g transform="rotate(-18 60 60)">';
       s += box(56, 26, 12, 74, o.body || '#dc2626', 5, 'stroke="#991b1b" stroke-width="1.6"');
@@ -3411,10 +3464,14 @@
       s += box(40, 42, 40, 24, '#fdfdff', 2);
       s += box(40, 72, 40, 20, '#fda4af', 2);
     } else if (o.shape === 'compass') {
-      s += ps('M32,96 L60,20 L88,96', '#475569', 3.4);
-      s += ps('M32,96 L88,96', '#334155', 3);
-      s += c(60, 20, 5, '#dc2626');
-      s += ps('M46,66 h28', '#64748b', 2);
+      /* A divider, hinged at the top. The horizontal bar this had between the
+         feet is what made it read as a tent: a compass has nothing joining its
+         two legs except the hinge. */
+      s += ps('M34,94 L60,20 L86,94', '#475569', 3.4);
+      s += ps('M40,94 L34,98 M80,94 L86,98', '#334155', 2.6);
+      s += c(60, 20, 5.5, '#dc2626', 'stroke="#fdfdff" stroke-width="1.4"');
+      s += c(60, 20, 1.6, '#7f1d1d');
+      s += ps('M60,26 v10', '#94a3b8', 1.8);
     } else if (o.shape === 'geometry') {
       s += box(14, 34, 92, 56, o.box || '#0ea9e9', 5, 'stroke="#0369a1" stroke-width="2"');
       s += box(20, 40, 80, 44, '#fdfdff', 2);
@@ -3630,10 +3687,34 @@
       s += ps('M70,44 h28 M70,58 h24 M70,72 h28', '#cbd5e1', 2.4);
       s += box(22, 30, 8, 44, o.stripe || '#0ea5e9', 2);
     } else if (o.shape === 'sound') {
-      s += p('M24,50 L40,50 L58,30 L58,90 L40,70 L24,70 Z', o.body || '#334155');
-      for (var wv = 0; wv < 3; wv++) {
-        s += ps('M' + (66 + wv * 10) + ',40 a' + (10 + wv * 8) + ',' + (10 + wv * 8) + ' 0 0 1 0,40',
-          o.accent || '#0ea5e9', 3 - wv * 0.5);
+      /* A speaker, which is a box with a cone in it. Three words were on this
+         branch — headphones, a headset and a speaker — and all three drew a
+         speaker, because there was nowhere else to put them. */
+      s += box(24, 26, 44, 68, o.body || '#334155', 5, 'stroke="#0f172a" stroke-width="2"');
+      s += c(46, 46, 13, o.cone || '#e2e8f0', 'stroke="#94a3b8" stroke-width="2"');
+      s += c(46, 46, 5, o.accent || '#0ea5e9');
+      s += c(46, 78, 8, o.cone || '#e2e8f0', 'stroke="#94a3b8" stroke-width="1.6"');
+      s += ps('M74,46 a14,14 0 0 1 0,28', o.accent || '#0ea5e9', 2.4);
+      s += ps('M80,38 a24,24 0 0 1 0,44', o.accent || '#0ea5e9', 2);
+    } else if (o.shape === 'headphones') {
+      /* Headphones: a band over two cups. `boom` is the whole difference
+         between *headphones* and a *headset* — headphones and a microphone are
+         two words, and the microphone is the new information. */
+      var cup = o.cup || '#334155';
+      s += ps('M24,68 v-8 a36,36 0 0 1 72,0 v8', o.band || '#0f172a', 6);
+      s += rc(16, 62, 18, 32, cup, 7, 'stroke="#0f172a" stroke-width="2"');
+      s += rc(86, 62, 18, 32, cup, 7, 'stroke="#0f172a" stroke-width="2"');
+      s += e(25, 78, 5, 10, o.pad || '#e2e8f0');
+      s += e(95, 78, 5, 10, o.pad || '#e2e8f0');
+      if (o.boom) {
+        /* A headset: the microphone on a boom, hanging off the left cup. The
+           flag and the colour are two fields — `o.boom` used for both, and a
+           flag of 1 became `stroke="1"`, which renders as no stroke at all. */
+        s += ps('M25,92 q-4,14 14,14', o.boomColor || '#0ea5e9', 3);
+        s += rc(34, 100, 16, 10, o.boomColor || '#0ea5e9', 4, 'stroke="#0f172a" stroke-width="1.6"');
+        s += c(41, 105, 2.4, '#f8fafc');
+      } else {
+        s += ps('M60,32 v10', o.accent || '#94a3b8', 2.4);
       }
     } else if (o.shape === 'mute') {
       s += p('M24,50 L40,50 L58,30 L58,90 L40,70 L24,70 Z', o.body || '#334155');
@@ -3761,8 +3842,12 @@
       return p('M' + (x + 22) + ',' + (y - 20) + ' L' + (x - 8) + ',' + (y + 2) + ' l30,0 l0,30 q0,-32 -30,-30 Z', '#22c55e');
     },
     warn: function (x, y) {
-      return pl('44,18 44,8 52,14 60,4 68,14 76,8 76,18', '#fbbf24', 'stroke="#b45309" stroke-width="1.4"') +
-        ps('M' + x + ',' + (y - 10) + ' v14 M' + x + ',' + (y + 11) + ' v0.1', '#78350f', 3.4);
+      /* A warning triangle, built from x and y. The list this replaces was typed
+         out at a fixed spot while the two strokes below it used the centre, so
+         the triangle and its mark came apart wherever it was drawn. */
+      return pl(x + ',' + (y - 18) + ' ' + (x + 20) + ',' + (y + 14) + ' ' + (x - 20) + ',' + (y + 14),
+        '#fbbf24', 'stroke="#b45309" stroke-width="1.4"') +
+        ps('M' + x + ',' + (y - 8) + ' v14 M' + x + ',' + (y + 11) + ' v0.1', '#78350f', 3.4);
     },
     lock: function (x, y) {
       return box(x - 18, y - 4, 36, 28, '#f59e0b', 4, 'stroke="#b45309" stroke-width="2"') +
@@ -4180,6 +4265,17 @@
       if (o.pattern) {
         for (var gp = 0; gp < 6; gp++) s += c(28 + (gp * 17) % 64, 48 + (gp * 23) % 34, 3, o.pattern, 'opacity=".7"');
       }
+    } else if (o.shape === 'mask') {
+      /* A masquerade mask, worn over the eyes. It was drawn as `soft`, which is
+         a patch of fabric: the two almond eye holes are what make it a mask, and
+         without them it is a cloth. The ribbon is what says it is tied on. */
+      s += p('M20,50 C20,30 100,30 100,50 C100,72 82,86 60,86 C38,86 20,72 20,50 Z',
+        o.body || '#7c3aed', 'stroke="' + (o.edge || '#4c1d95') + '" stroke-width="2"');
+      s += e(41, 55, 12, 8, o.eye || '#0f172a');
+      s += e(79, 55, 12, 8, o.eye || '#0f172a');
+      s += ps('M20,58 q-14,6 -16,18 M100,58 q14,6 16,18', o.body || '#7c3aed', 3.4);
+      s += c(60, 38, 5, o.pattern || '#fbbf24') + c(60, 74, 4, o.pattern || '#fbbf24');
+      s += ps('M32,44 q10,-6 18,-2 M88,44 q-10,-6 -18,-2', o.pattern || '#fbbf24', 2.4, 'opacity=".85"');
     } else if (o.shape === 'headgear') {
       s += c(60, 60, 34, SKIN, 'stroke="' + SKIN_D + '" stroke-width="2"');
       s += p('M26,52 C26,30 94,30 94,52 L94,58 L26,58 Z', o.body || '#dc2626', 'stroke="#991b1b" stroke-width="2"');
@@ -4210,6 +4306,22 @@
       s += c(76, 62, 5, o.handle || '#fbbf24', 'stroke="#b45309" stroke-width="1.6"');
       if (o.frame) s += box(24, 10, 72, 10, o.frame, 2, 'stroke="#6b4423" stroke-width="1.6"');
       if (o.lamp) s += c(60, 12, 8, '#fde68a', 'stroke="#fbbf24" stroke-width="2"');
+    } else if (o.shape === 'gate') {
+      /* A gate, which is a door you can see through: two posts, a frame, and
+         bars. The word was drawn as an envelope. What separates it from `door`
+         is the bars — a solid panel with a handle is a door, a frame you can
+         see the garden through is a gate, and the bars are the whole
+         difference. */
+      s += box(14, 22, 12, 80, o.post || '#92400e', 3, 'stroke="#6b4423" stroke-width="2"');
+      s += box(94, 22, 12, 80, o.post || '#92400e', 3, 'stroke="#6b4423" stroke-width="2"');
+      s += box(14, 22, 92, 10, o.rail || '#78350f', 2, 'stroke="#6b4423" stroke-width="1.6"');
+      s += box(14, 92, 92, 10, o.rail || '#78350f', 2, 'stroke="#6b4423" stroke-width="1.6"');
+      for (var gb = 0; gb < 5; gb++) {
+        s += box(32 + gb * 14, 32, 6, 60, o.bar || '#b45309', 2, 'stroke="#6b4423" stroke-width="1.2"');
+      }
+      /* the diagonal brace is what says "gate" and not "fence panel" */
+      s += ps('M32,92 L90,32', o.rail || '#78350f', 4);
+      s += c(86, 62, 4.5, o.handle || '#fbbf24', 'stroke="#b45309" stroke-width="1.4"');
     } else if (o.shape === 'window') {
       s += box(20, 24, 80, 64, o.frame || '#94a3b8', 4, 'stroke="#64748b" stroke-width="2"');
       s += box(28, 32, 64, 48, o.glass || '#bae6fd', 2);
@@ -5315,6 +5427,17 @@
         s += p('M56,26 L34,68 L56,68 Z', o.jib || '#e0f2fe', 'stroke="#0369a1" stroke-width="1.4"');
         s += ps('M6,102 q10,-6 20,0 q10,6 20,0', '#7dd3fc', 3);
       }
+    } else if (o.shape === 'compass') {
+      /* A magnetic compass. Not the divider — that is `school`/`compass`, and
+         the two are different instruments. The needle is the whole word: a case
+         and a dial with nothing between them is a pocket watch. */
+      s += c(60, 58, 36, o.shell || '#334155', 'stroke="#0f172a" stroke-width="2"');
+      s += c(60, 58, 29, o.face || '#fdfdff', 'stroke="#94a3b8" stroke-width="1.6"');
+      s += ps('M60,30 v6 M60,80 v6 M32,58 h6 M82,58 h6', '#94a3b8', 1.6);
+      s += pl('60,32 67,64 60,58 53,64', o.needle || '#dc2626');
+      s += pl('60,84 67,52 60,58 53,52', '#334155');
+      s += c(60, 58, 4, '#0f172a');
+      s += ps('M60,46 v-6', '#334155', 1.4);
     } else if (o.shape === 'board') {
       s += box(12, 26, 96, 52, o.surface || '#0f172a', 4, 'stroke="#1f2937" stroke-width="2"');
       if (o.glyph === 'departure') {
@@ -5915,7 +6038,19 @@
     rect: function (x, y, f, i) { return box(x - 30, y - 18, 60, 36, f, 3, 'stroke="' + i + '" stroke-width="2"'); },
     oval: function (x, y, f, i) { return e(x, y, 30, 18, f, 'stroke="' + i + '" stroke-width="2"'); },
     star: function (x, y, f, i) {
-      return pl('28,8,9,27,7,13,7,17,26,15,17,26,13,7,27,7,8,9', f, 'stroke="' + i + '" stroke-width="2"');
+      /* Ten vertices alternating between the outer and the inner radius, so the
+         point count and the shape follow from the radius instead of being typed
+         out. This was a hand-written point list that was a *lightning bolt*, and
+         it ignored x and y, so every star in the deck was the same bolt in the
+         same place. A point list that is syntactically valid is not the same as
+         one that is the right shape, and nothing in the harness could tell. */
+      var d = '';
+      for (var k = 0; k < 10; k++) {
+        var a = (k * Math.PI) / 5 - Math.PI / 2;
+        var rr = k % 2 ? 11 : 26;
+        d += (k ? ' ' : '') + (x + Math.cos(a) * rr).toFixed(1) + ',' + (y + Math.sin(a) * rr).toFixed(1);
+      }
+      return pl(d, f, 'stroke="' + i + '" stroke-width="2"');
     },
     heart: function (x, y, f, i) {
       return c(x - 12, y - 8, 12, f) + c(x + 12, y - 8, 12, f) + c(x, y + 6, 12, f);

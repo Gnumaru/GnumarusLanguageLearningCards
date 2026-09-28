@@ -26,6 +26,8 @@ step 'lint: the positional shape vocabulary'        python3 tools/lint.py
 step 'check: the deck, the labels, the artwork'     node tools/check.js
 step 'shapes: recipes name something their kind draws' node tools/shapes.js
 step 'tables: every field a table sets is read'       node tools/tables.js
+step 'duplicates: one recipe per id'               node tools/duplicates.js
+step 'branches: no art nobody can reach'        node tools/branches.js
 step 'snapshot: render every card'                  node tools/snapshot.js
 step 'validate: re-parse the rendered markup'       python3 tools/validate.py
 

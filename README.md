@@ -295,6 +295,7 @@ harness cover the mistakes that actually happened while building this:
 | Lint | Catches |
 | --- | --- |
 | `lint.py` | too many arguments for a helper; a quoted string in a numeric slot; a bare number or an unbalanced quote in the attribute slot; a computed path with no `M`; a polygon point list carrying a command letter; two branches on the same condition |
+| `branches.js` | a branch a kind declares that no recipe can reach — a misplaced branch, or art left unreachable by a deleted recipe |
 | `check.js` | a themed row `add()` skipped, a duplicate entry in all three languages, a blank translation, a translation in the wrong script, a recipe for an id the deck does not have, a recipe that throws, a card on the generic fallback, two cards with the same drawing |
 | `drop.js` | the same drop, one theme file at a time, which is the only way to see a collision masked by load order |
 | `shapes.js` | a recipe naming a shape its kind does not have, and a recipe that draws the kind's default |
@@ -362,8 +363,8 @@ the allowlist drops, which is the check on the check.
 excusable: they are two words that were never told apart. They are reported as
 their own number rather than folded into the total.
 
-The honest number today is **289 groups, 947 cards** at the line. The worst kinds
-are `diagram` (137), `outdoor` (122), `roleFigure` (92), `accessory` (75),
+The honest number today is **283 groups, 924 cards** at the line. The worst kinds
+are `diagram` (132), `outdoor` (122), `roleFigure` (92), `accessory` (72),
 `money` (51), `office` (47), `journey` (42), `message` (32) and `media` (32).
 Most of it predates the last batch: the colours and the first fifty people are
 from the original 500. Fixing it means giving words their own templates the way
